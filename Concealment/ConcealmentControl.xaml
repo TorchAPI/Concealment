@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="Concealment.ConcealmentControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Concealment"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top">
+            <StackPanel DataContext="{Binding Settings}">
+                <CheckBox Content="Enable Concealment" Margin="3" IsChecked="{Binding Enabled}" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding ConcealDistance}" />
+                    <Label Content="Conceal Distance (meters)" Margin="3" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding RevealDistance}" />
+                    <Label Content="Reveal Distance (meters)" Margin="3" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding ConcealInterval}" />
+                    <Label Content="Conceal Interval (ticks, 1/60 s)" Margin="3" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding RevealInterval}" />
+                    <Label Content="Reveal Interval (ticks, 1/60 s)" Margin="3" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Manual Conceal" Margin="3" Click="Conceal_OnClick" />
+                <Button Content="Manual Reveal" Margin="3" Click="Reveal_OnClick" />
+            </StackPanel>
+        </StackPanel>
+        <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="ButtonBase_OnClick" />
+        <ListView Name="Concealed" Margin="3" DockPanel.Dock="Bottom" ItemsSource="{Binding ConcealGroups}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="{Binding GridNames}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ListView>
+    </DockPanel>
+
+</UserControl>
