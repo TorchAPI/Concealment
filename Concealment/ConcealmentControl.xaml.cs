@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Torch.Views;
 
 #endregion
 
@@ -20,7 +21,7 @@ namespace Concealment
 
         public ConcealmentPlugin Plugin => (ConcealmentPlugin)DataContext;
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        private void RevealSelected_OnClick(object sender, RoutedEventArgs e)
         {
             var groups = Concealed.SelectedItems.Cast<ConcealGroup>().ToList();
             Concealed.SelectedItems.Clear();
@@ -38,13 +39,19 @@ namespace Concealment
         private void Reveal_OnClick(object sender, RoutedEventArgs e)
         {
             var p = Plugin;
-            Plugin.Torch.Invoke(delegate { p.RevealNearbyGrids(p.Settings.RevealDistance); });
+            Plugin.Torch.Invoke(delegate { p.RevealNearbyGrids(p.Settings.Data.RevealDistance); });
         }
 
         private void Conceal_OnClick(object sender, RoutedEventArgs e)
         {
             var p = Plugin;
-            Plugin.Torch.Invoke(delegate { p.ConcealDistantGrids(p.Settings.ConcealDistance); });
+            Plugin.Torch.Invoke(delegate { p.ConcealDistantGrids(p.Settings.Data.ConcealDistance); });
+        }
+
+        private void EditExclusion_OnClick(object sender, RoutedEventArgs e)
+        {
+            var editor = new CollectionEditor() {Owner = Window.GetWindow(this)};
+            editor.Edit(Plugin.Settings.Data.ExcludedSubtypes, "Excluded Subtypes");
         }
     }
 }

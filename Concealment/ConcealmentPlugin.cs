@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace Concealment
     [Plugin("Concealment", "1.0", "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
-        public Settings Settings { get; }
+        public Persistent<Settings> Settings { get; }
         public MTObservableCollection<ConcealGroup> ConcealGroups { get; } = new MTObservableCollection<ConcealGroup>();
 
         private static readonly Logger Log = LogManager.GetLogger("Concealment");
@@ -35,11 +36,11 @@ namespace Concealment
         private readonly List<ConcealGroup> _intersectGroups;
         private MyDynamicAABBTreeD _concealedAabbTree;
 
-
         public ConcealmentPlugin()
         {
             _intersectGroups = new List<ConcealGroup>();
-            Settings = Settings.LoadOrCreate("Concealment.cfg");
+            Settings = Persistent<Settings>.Load("Concealment.cfg");
+            Settings.Data.RevealNeeded += () => RevealNearbyGrids(Settings.Data.RevealDistance);
         }
 
         public UserControl GetControl()
@@ -51,6 +52,12 @@ namespace Concealment
         {
             base.Init(torch);
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
+            torch.SessionUnloading += Torch_SessionUnloading;
+        }
+
+        private void Torch_SessionUnloading()
+        {
+            RevealAll();
         }
 
         public override void Update()
@@ -58,10 +65,10 @@ namespace Concealment
             if (MyAPIGateway.Session == null)
                 return;
 
-            if (_counter % Settings.ConcealInterval == 0)
-                ConcealDistantGrids(Settings.ConcealDistance);
-            if (_counter % Settings.RevealInterval == 0)
-                RevealNearbyGrids(Settings.RevealDistance);
+            if (_counter % Settings.Data.ConcealInterval == 0)
+                ConcealDistantGrids(Settings.Data.ConcealDistance);
+            if (_counter % Settings.Data.RevealInterval == 0)
+                RevealNearbyGrids(Settings.Data.RevealDistance);
             _counter += 1;
 
             if (_init)
@@ -75,6 +82,7 @@ namespace Concealment
 
         public override void Dispose()
         {
+            RevealAll();
             Settings.Save("Concealment.cfg");
         }
 
@@ -123,11 +131,16 @@ namespace Concealment
         private void ConcealEntity(IMyEntity entity)
         {
             if (entity != entity.GetTopMostParent())
-                throw new InvalidOperationException("Can only conceal top-level entities.");
+                return;
 
-            MyGamePruningStructure.Remove((MyEntity)entity);
-            entity.Physics?.Deactivate();
-            UnregisterRecursive(entity);
+            if (Settings.Data.ManagePhysics)
+            {
+                MyGamePruningStructure.Remove((MyEntity)entity);
+                entity.Physics?.Deactivate();
+            }
+
+            if (Settings.Data.ManageGamelogic)
+                UnregisterRecursive(entity);
 
             void UnregisterRecursive(IMyEntity e)
             {
@@ -143,11 +156,16 @@ namespace Concealment
         private void RevealEntity(IMyEntity entity)
         {
             if (entity != entity.GetTopMostParent())
-                throw new InvalidOperationException("Can only conceal top-level entities.");
+                return;
 
-            MyGamePruningStructure.Add((MyEntity)entity);
-            entity.Physics?.Activate();
-            RegisterRecursive(entity);
+            if (Settings.Data.ManagePhysics)
+            {
+                MyGamePruningStructure.Add((MyEntity)entity);
+                entity.Physics?.Activate();
+            }
+
+            if (Settings.Data.ManageGamelogic)
+                RegisterRecursive(entity);
 
             void RegisterRecursive(IMyEntity e)
             {
@@ -176,7 +194,13 @@ namespace Concealment
                 Log.Debug($"Group {group.Id} cached");
                 Torch.Invoke(() => _concealGroups.Add(group));
             });
+            group.Closing += Group_Closing;
             return group.Grids.Count;
+        }
+
+        private void Group_Closing(ConcealGroup group)
+        {
+            RevealGroup(group);
         }
 
         public int RevealGroup(ConcealGroup group)
@@ -201,7 +225,8 @@ namespace Concealment
 
         public int RevealNearbyGrids(double distanceFromPlayers)
         {
-            Log.Debug("Revealing nearby grids");
+            //annoying log spam
+            //Log.Debug("Revealing nearby grids");
             var revealed = 0;
             var playerSpheres = GetPlayerBoundingSpheres(distanceFromPlayers);
             foreach (var sphere in playerSpheres)
@@ -213,19 +238,42 @@ namespace Concealment
         public int ConcealDistantGrids(double distanceFromPlayers)
         {
             Log.Debug("Concealing distant grids");
-            var concealed = 0;
+            int concealed = 0;
             var playerSpheres = GetPlayerBoundingSpheres(distanceFromPlayers);
 
-            foreach (var group in MyCubeGridGroups.Static.Physical.Groups)
+            ConcurrentBag<ConcealGroup> groups = new ConcurrentBag<ConcealGroup>();
+            Parallel.ForEach(MyCubeGridGroups.Static.Physical.Groups, group =>
             {
+                var concealGroup = new ConcealGroup(group);
+
                 var volume = group.GetWorldAABB();
                 if (playerSpheres.Any(s => s.Contains(volume) != ContainmentType.Disjoint))
-                    continue;
+                    return;
 
-                concealed += ConcealGroup(new ConcealGroup(group));
+                //if (IsExcluded(concealGroup))
+                //    return;
+
+                groups.Add(concealGroup);
+            });
+            foreach (var group in groups)
+            {
+                concealed += ConcealGroup(group);
             }
 
             return concealed;
+        }
+
+        public bool IsExcluded(ConcealGroup group)
+        {
+            foreach (var block in group.Grids.SelectMany(g => g.CubeBlocks).Select(x => x.FatBlock))
+            {
+                if (block == null)
+                    continue;
+                if (Settings.Data.ExcludedSubtypes.Contains(block.BlockDefinition.Id.SubtypeName))
+                    return false;
+            }
+
+            return true;
         }
 
         public int RevealAll()

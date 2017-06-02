@@ -22,6 +22,7 @@ namespace Concealment
         public List<MyCubeGrid> Grids { get; }
         public List<MyMedicalRoom> MedicalRooms { get; } = new List<MyMedicalRoom>();
         public List<MyCryoChamber> CryoChambers { get; } = new List<MyCryoChamber>();
+        public event Action<ConcealGroup> Closing;
         internal volatile int ProxyId = -1;
 
         public ConcealGroup(MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group group)
@@ -39,6 +40,20 @@ namespace Concealment
         {
             UpdateAABB();
             CacheSpawns();
+            HookOnClosing();
+        }
+
+        private void HookOnClosing()
+        {
+            foreach (var grid in Grids)
+                grid.OnClosing += Grid_OnClosing;
+        }
+
+        private void Grid_OnClosing(VRage.Game.Entity.MyEntity obj)
+        {
+            Closing?.Invoke(this);
+            foreach (var grid in Grids)
+                grid.OnClosing -= Grid_OnClosing;
         }
 
         private void UpdateAABB()

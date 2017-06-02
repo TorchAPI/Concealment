@@ -14,7 +14,7 @@ namespace Concealment
         {
             if (distance == 0)
             {
-                distance = Plugin.Settings.ConcealDistance;
+                distance = Plugin.Settings.Data.ConcealDistance;
             }
             var num = Plugin.ConcealDistantGrids(distance);
             Context.Respond($"{num} grids concealed.");
@@ -35,7 +35,7 @@ namespace Concealment
             Context.Respond($"{num} grids revealed.");
         }
 
-        [Command("all", "Reveal all grids", null, "reveal"), Permission(MyPromoteLevel.SpaceMaster)]
+        [Command("reveal all", "Reveal all grids"), Permission(MyPromoteLevel.SpaceMaster)]
         public void RevealAll()
         {
             int num = Plugin.RevealAll();

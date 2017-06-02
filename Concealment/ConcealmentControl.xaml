@@ -8,8 +8,10 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top">
-            <StackPanel DataContext="{Binding Settings}">
+            <StackPanel DataContext="{Binding Settings.Data}">
                 <CheckBox Content="Enable Concealment" Margin="3" IsChecked="{Binding Enabled}" />
+                <CheckBox Content="Manage Physics" Margin="3" IsChecked="{Binding ManagePhysics}" />
+                <CheckBox Content="Manage Gamelogic" Margin="3" IsChecked="{Binding ManageGamelogic}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBox Margin="3" Width="150" Text="{Binding ConcealDistance}" />
                     <Label Content="Conceal Distance (meters)" Margin="3" />
@@ -31,8 +33,9 @@
                 <Button Content="Manual Conceal" Margin="3" Click="Conceal_OnClick" />
                 <Button Content="Manual Reveal" Margin="3" Click="Reveal_OnClick" />
             </StackPanel>
+            <Button Content="Edit Excluded Subtypes" Margin="3" Click="RevealSelected_OnClick"/>
         </StackPanel>
-        <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="ButtonBase_OnClick" />
+        <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="EditExclusion_OnClick" />
         <ListView Name="Concealed" Margin="3" DockPanel.Dock="Bottom" ItemsSource="{Binding ConcealGroups}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
