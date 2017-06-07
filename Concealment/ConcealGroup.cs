@@ -17,7 +17,7 @@ namespace Concealment
         /// Entity ID of the first grid in the group.
         /// </summary>
         public long Id { get; }
-        public DateTime ConcealTime { get; set; }
+        public bool IsConcealed { get; set; }
         public BoundingBoxD WorldAABB { get; private set; }
         public List<MyCubeGrid> Grids { get; }
         public List<MyMedicalRoom> MedicalRooms { get; } = new List<MyMedicalRoom>();
@@ -38,6 +38,7 @@ namespace Concealment
 
         public void UpdatePostConceal()
         {
+            IsConcealed = true;
             UpdateAABB();
             CacheSpawns();
             HookOnClosing();

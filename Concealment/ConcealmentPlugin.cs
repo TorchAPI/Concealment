@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using NLog;
@@ -22,7 +24,7 @@ using VRageMath;
 
 namespace Concealment
 {
-    [Plugin("Concealment", "1.0", "17f44521-b77a-4e85-810f-ee73311cf75d")]
+    [Plugin("Concealment", "1.1", "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; }
@@ -74,7 +76,7 @@ namespace Concealment
             if (_init)
                 return;
 
-            MySession.Static.Players.PlayerRequesting += RevealSpawns;
+            //MySession.Static.Players.PlayerRequesting += RevealSpawns;
             MyMultiplayer.Static.ClientJoined += RevealCryoPod;
 
             _init = true;
@@ -183,18 +185,18 @@ namespace Concealment
             if (_concealGroups.Any(g => g.Id == group.Id))
                 return 0;
 
-            Log.Info($"Concealing grids: {string.Join(", ", group.Grids.Select(g => g.DisplayName))}");
-            group.ConcealTime = DateTime.Now;
+            Log.Info($"Concealing grids: {group.GridNames}");
             group.Grids.ForEach(ConcealEntity);
+            var aabb = group.WorldAABB;
+            group.ProxyId = _concealedAabbTree.AddProxy(ref aabb, group, 0);
+            group.Closing += Group_Closing;
             Task.Run(() =>
             {
                 group.UpdatePostConceal();
-                var aabb = group.WorldAABB;
-                group.ProxyId = _concealedAabbTree.AddProxy(ref aabb, group, 0);
                 Log.Debug($"Group {group.Id} cached");
+                group.IsConcealed = true;
                 Torch.Invoke(() => _concealGroups.Add(group));
             });
-            group.Closing += Group_Closing;
             return group.Grids.Count;
         }
 
@@ -205,7 +207,13 @@ namespace Concealment
 
         public int RevealGroup(ConcealGroup group)
         {
-            Log.Info($"Revealing grids: {string.Join(", ", group.Grids.Select(g => g.DisplayName))}");
+            if (!group.IsConcealed)
+            {
+                Log.Warn($"Attempted to reveal a group that wasn't concealed: {group.GridNames}");
+                Log.Warn(new StackTrace());
+                return 0;
+            }
+            Log.Debug($"Revealing grids: {group.GridNames}");
             group.Grids.ForEach(RevealEntity);
             _concealGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);
@@ -232,6 +240,8 @@ namespace Concealment
             foreach (var sphere in playerSpheres)
                 revealed += RevealGridsInSphere(sphere);
 
+            if (revealed != 0)
+                Log.Info($"Revealed {revealed} grids near players.");
             return revealed;
         }
 
@@ -259,6 +269,9 @@ namespace Concealment
             {
                 concealed += ConcealGroup(group);
             }
+
+            if (concealed != 0)
+                Log.Info($"Concealed {concealed} grids distant from players.");
 
             return concealed;
         }
