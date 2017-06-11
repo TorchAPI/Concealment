@@ -57,7 +57,7 @@ namespace Concealment
                 grid.OnClosing -= Grid_OnClosing;
         }
 
-        private void UpdateAABB()
+        public void UpdateAABB()
         {
             var startPos = Grids.First().PositionComp.GetPosition();
             var box = new BoundingBoxD(startPos, startPos);

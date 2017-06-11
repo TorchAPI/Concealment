@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using Havok;
 using NLog;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
+using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
@@ -17,6 +19,7 @@ using Torch.API;
 using Torch.API.Plugins;
 using Torch.Managers;
 using VRage.Game;
+using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -42,7 +45,6 @@ namespace Concealment
         {
             _intersectGroups = new List<ConcealGroup>();
             Settings = Persistent<Settings>.Load("Concealment.cfg");
-            Settings.Data.RevealNeeded += () => RevealNearbyGrids(Settings.Data.RevealDistance);
         }
 
         public UserControl GetControl()
@@ -135,14 +137,12 @@ namespace Concealment
             if (entity != entity.GetTopMostParent())
                 return;
 
-            if (Settings.Data.ManagePhysics)
-            {
-                MyGamePruningStructure.Remove((MyEntity)entity);
-                entity.Physics?.Deactivate();
-            }
-
-            if (Settings.Data.ManageGamelogic)
-                UnregisterRecursive(entity);
+            entity.GetStorage().SetValue(Id, "True");
+#if !NOPHYS
+            MyGamePruningStructure.Remove((MyEntity)entity);
+            entity.Physics?.Deactivate();
+#endif
+            UnregisterRecursive(entity);
 
             void UnregisterRecursive(IMyEntity e)
             {
@@ -160,14 +160,12 @@ namespace Concealment
             if (entity != entity.GetTopMostParent())
                 return;
 
-            if (Settings.Data.ManagePhysics)
-            {
-                MyGamePruningStructure.Add((MyEntity)entity);
-                entity.Physics?.Activate();
-            }
-
-            if (Settings.Data.ManageGamelogic)
-                RegisterRecursive(entity);
+            entity.GetStorage().SetValue(Id, "False");
+#if !NOPHYS
+            MyGamePruningStructure.Add((MyEntity)entity);
+            entity.Physics?.Activate();
+#endif
+            RegisterRecursive(entity);
 
             void RegisterRecursive(IMyEntity e)
             {
@@ -185,10 +183,12 @@ namespace Concealment
             if (_concealGroups.Any(g => g.Id == group.Id))
                 return 0;
 
-            Log.Info($"Concealing grids: {group.GridNames}");
+            Log.Debug($"Concealing grids: {group.GridNames}");
             group.Grids.ForEach(ConcealEntity);
+#if !NOPHYS
             var aabb = group.WorldAABB;
             group.ProxyId = _concealedAabbTree.AddProxy(ref aabb, group, 0);
+#endif
             group.Closing += Group_Closing;
             Task.Run(() =>
             {
@@ -215,15 +215,26 @@ namespace Concealment
             }
             Log.Debug($"Revealing grids: {group.GridNames}");
             group.Grids.ForEach(RevealEntity);
+#if !NOPHYS
             _concealGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);
+#endif
             return group.Grids.Count;
         }
 
         public int RevealGridsInSphere(BoundingSphereD sphere)
         {
             var revealed = 0;
+#if !NOPHYS
             _concealedAabbTree.OverlapAllBoundingSphere(ref sphere, _intersectGroups);
+#else
+            foreach (var group in ConcealGroups)
+            {
+                group.UpdateAABB();
+                if (sphere.Contains(group.WorldAABB) != ContainmentType.Disjoint)
+                    _intersectGroups.Add(group);
+            }
+#endif
             foreach (var group in _intersectGroups)
                 revealed += RevealGroup(group);
 
@@ -303,6 +314,14 @@ namespace Concealment
         private List<BoundingSphereD> GetPlayerBoundingSpheres(double distance)
         {
             return ((MyPlayerCollection)MyAPIGateway.Multiplayer.Players).GetOnlinePlayers().Where(p => p.Controller?.ControlledEntity != null).Select(p => new BoundingSphereD(p.Controller.ControlledEntity.Entity.PositionComp.GetPosition(), distance)).ToList();
+        }
+    }
+
+    public static class Extensions
+    {
+        public static MyModStorageComponentBase GetStorage(this IMyEntity entity)
+        {
+            return entity.Storage = entity.Storage ?? new MyModStorageComponent();
         }
     }
 }

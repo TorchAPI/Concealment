@@ -13,11 +13,8 @@ namespace Concealment
         private ulong _concealInterval = 3600;
         private double _revealDistance = 50000;
         private ulong _revealInterval = 60;
-        private bool _managePhysics = true;
-        private bool _manageGamelogic = true;
 
         public MTObservableCollection<string> ExcludedSubtypes { get; } = new MTObservableCollection<string>();
-        public event Action RevealNeeded;
 
         public bool Enabled
         {
@@ -47,18 +44,6 @@ namespace Concealment
         {
             get => _revealDistance;
             set { _revealDistance = value; OnPropertyChanged(); }
-        }
-
-        public bool ManagePhysics
-        {
-            get => _managePhysics;
-            set { RevealNeeded?.Invoke(); _managePhysics = value; OnPropertyChanged(); }
-        }
-
-        public bool ManageGamelogic
-        {
-            get => _manageGamelogic;
-            set { RevealNeeded?.Invoke(); _manageGamelogic = value; OnPropertyChanged(); }
         }
 
         public void Save(string path)
