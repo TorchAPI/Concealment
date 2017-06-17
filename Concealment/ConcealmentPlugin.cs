@@ -2,12 +2,14 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Havok;
 using NLog;
+using Sandbox.Definitions;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
@@ -20,9 +22,13 @@ using Torch.API.Plugins;
 using Torch.Managers;
 using VRage.Game;
 using VRage.Game.Components;
+using VRage.Game.Definitions;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.ComponentSystem;
 using VRage.ModAPI;
+using VRage.ObjectBuilders;
+using VRage.Utils;
 using VRageMath;
 
 namespace Concealment
@@ -30,7 +36,7 @@ namespace Concealment
     [Plugin("Concealment", "1.1", "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
-        public Persistent<Settings> Settings { get; }
+        public Persistent<Settings> Settings { get; private set; }
         public MTObservableCollection<ConcealGroup> ConcealGroups { get; } = new MTObservableCollection<ConcealGroup>();
 
         private static readonly Logger Log = LogManager.GetLogger("Concealment");
@@ -44,7 +50,6 @@ namespace Concealment
         public ConcealmentPlugin()
         {
             _intersectGroups = new List<ConcealGroup>();
-            Settings = Persistent<Settings>.Load("Concealment.cfg");
         }
 
         public UserControl GetControl()
@@ -55,8 +60,18 @@ namespace Concealment
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
+            Settings = Persistent<Settings>.Load(Path.Combine(StoragePath, "Concealment.cfg"));
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
             torch.SessionUnloading += Torch_SessionUnloading;
+
+            //Init storage component.
+            var comp = new MyModStorageComponentDefinition
+            { 
+                Id = new MyDefinitionId(typeof(MyObjectBuilder_ModStorageComponent), "Concealment"),
+                RegisteredStorageGuids = new[] {Id}
+            };
+            MyDefinitionManager.Static.Definitions.AddDefinition(comp);
+
         }
 
         private void Torch_SessionUnloading()
@@ -224,6 +239,7 @@ namespace Concealment
 
         public int RevealGridsInSphere(BoundingSphereD sphere)
         {
+            Log.Debug($"reveal in sphere {sphere.Center} | {sphere.Radius}");
             var revealed = 0;
 #if !NOPHYS
             _concealedAabbTree.OverlapAllBoundingSphere(ref sphere, _intersectGroups);
@@ -244,10 +260,10 @@ namespace Concealment
 
         public int RevealNearbyGrids(double distanceFromPlayers)
         {
-            //annoying log spam
-            //Log.Debug("Revealing nearby grids");
+            Log.Debug("Revealing nearby grids");
             var revealed = 0;
             var playerSpheres = GetPlayerBoundingSpheres(distanceFromPlayers);
+            Log.Debug(playerSpheres.Count);
             foreach (var sphere in playerSpheres)
                 revealed += RevealGridsInSphere(sphere);
 
@@ -263,19 +279,20 @@ namespace Concealment
             var playerSpheres = GetPlayerBoundingSpheres(distanceFromPlayers);
 
             ConcurrentBag<ConcealGroup> groups = new ConcurrentBag<ConcealGroup>();
-            Parallel.ForEach(MyCubeGridGroups.Static.Physical.Groups, group =>
+            //Parallel.ForEach(MyCubeGridGroups.Static.Physical.Groups, group =>
+            foreach (var group in MyCubeGridGroups.Static.Physical.Groups)
             {
                 var concealGroup = new ConcealGroup(group);
 
                 var volume = group.GetWorldAABB();
                 if (playerSpheres.Any(s => s.Contains(volume) != ContainmentType.Disjoint))
-                    return;
+                    continue;
 
                 //if (IsExcluded(concealGroup))
                 //    return;
 
                 groups.Add(concealGroup);
-            });
+            }
             foreach (var group in groups)
             {
                 concealed += ConcealGroup(group);

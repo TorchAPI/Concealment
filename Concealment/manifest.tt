@@ -1,0 +1,18 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".xml" #>
+
+<#  var dt = DateTime.Now;
+    int major = 1;
+	int minor = 0;
+	int build = dt.DayOfYear;
+	int rev = (int)dt.TimeOfDay.TotalMinutes / 2;
+#>
+<?xml version="1.0"?>
+<PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Repository>TorchAPI/Concealment</Repository>
+  <Version><#= major #>.<#= minor #>.<#= build #>.<#= rev #></Version>
+</PluginManifest>

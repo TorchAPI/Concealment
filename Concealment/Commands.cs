@@ -23,10 +23,10 @@ namespace Concealment
         [Command("reveal", "Reveal all grids within the given distance"), Permission(MyPromoteLevel.SpaceMaster)]
         public void Reveal(double distance = 1000)
         {
-            var pos = Context.Player.Controller.ControlledEntity?.Entity.GetPosition();
+            var pos = Context.Player?.Controller.ControlledEntity?.Entity.GetPosition();
             if (!pos.HasValue)
             {
-                Context.Respond("You must be controlling an entity");
+                Context.Respond("You must be controlling an entity.");
                 return;
             }
 

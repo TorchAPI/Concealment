@@ -10,8 +10,6 @@
         <StackPanel DockPanel.Dock="Top">
             <StackPanel DataContext="{Binding Settings.Data}">
                 <CheckBox Content="Enable Concealment" Margin="3" IsChecked="{Binding Enabled}" />
-                <CheckBox Content="Manage Physics" Margin="3" IsChecked="{Binding ManagePhysics}" />
-                <CheckBox Content="Manage Gamelogic" Margin="3" IsChecked="{Binding ManageGamelogic}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBox Margin="3" Width="150" Text="{Binding ConcealDistance}" />
                     <Label Content="Conceal Distance (meters)" Margin="3" />
