@@ -62,16 +62,18 @@ namespace Concealment
             base.Init(torch);
             Settings = Persistent<Settings>.Load(Path.Combine(StoragePath, "Concealment.cfg"));
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
-            torch.SessionUnloading += Torch_SessionUnloading;
+            //torch.SessionUnloading += Torch_SessionUnloading;
+            RegisterEntityStorage("Concealment", Id);
+        }
 
-            //Init storage component.
+        private void RegisterEntityStorage(string name, Guid id)
+        {
             var comp = new MyModStorageComponentDefinition
-            { 
-                Id = new MyDefinitionId(typeof(MyObjectBuilder_ModStorageComponent), "Concealment"),
-                RegisteredStorageGuids = new[] {Id}
+            {
+                Id = new MyDefinitionId(typeof(MyObjectBuilder_ModStorageComponent), name),
+                RegisteredStorageGuids = new[] { id }
             };
             MyDefinitionManager.Static.Definitions.AddDefinition(comp);
-
         }
 
         private void Torch_SessionUnloading()
