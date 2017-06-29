@@ -10,6 +10,7 @@
         <StackPanel DockPanel.Dock="Top">
             <StackPanel DataContext="{Binding Settings.Data}">
                 <CheckBox Content="Enable Concealment" Margin="3" IsChecked="{Binding Enabled}" />
+                <CheckBox Content="Exempt Production" ToolTip="Don't conceal grids with active production blocks." Margin="3" IsChecked="{Binding ExemptProduction}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBox Margin="3" Width="150" Text="{Binding ConcealDistance}" />
                     <Label Content="Conceal Distance (meters)" Margin="3" />

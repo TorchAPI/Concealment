@@ -27,14 +27,12 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.ComponentSystem;
 using VRage.ModAPI;
-using VRage.ObjectBuilders;
-using VRage.Utils;
 using VRageMath;
 
 namespace Concealment
 {
-    [Plugin("Concealment", "1.1", "17f44521-b77a-4e85-810f-ee73311cf75d")]
-    public class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
+    [Plugin("Concealment", "1.1.2", "17f44521-b77a-4e85-810f-ee73311cf75d")]
+    public sealed class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; private set; }
         public MTObservableCollection<ConcealGroup> ConcealGroups { get; } = new MTObservableCollection<ConcealGroup>();
@@ -52,7 +50,7 @@ namespace Concealment
             _intersectGroups = new List<ConcealGroup>();
         }
 
-        public UserControl GetControl()
+        UserControl IWpfPlugin.GetControl()
         {
             return _control ?? (_control = new ConcealmentControl {DataContext = this});
         }
@@ -87,7 +85,7 @@ namespace Concealment
                 return;
 
             if (_counter % Settings.Data.ConcealInterval == 0)
-                ConcealDistantGrids(Settings.Data.ConcealDistance);
+                ConcealGrids(Settings.Data.ConcealDistance);
             if (_counter % Settings.Data.RevealInterval == 0)
                 RevealNearbyGrids(Settings.Data.RevealDistance);
             _counter += 1;
@@ -168,7 +166,7 @@ namespace Concealment
                     return;
 
                 foreach (var child in e.Hierarchy.Children)
-                    UnregisterRecursive(child.Entity);
+                    UnregisterRecursive(child.Container.Entity);
             }
         }
 
@@ -191,7 +189,7 @@ namespace Concealment
                     return;
 
                 foreach (var child in e.Hierarchy.Children)
-                    RegisterRecursive(child.Entity);
+                    RegisterRecursive(child.Container.Entity);
             }
         }
 
@@ -203,6 +201,7 @@ namespace Concealment
             Log.Debug($"Concealing grids: {group.GridNames}");
             group.Grids.ForEach(ConcealEntity);
 #if !NOPHYS
+            group.UpdateAABB();
             var aabb = group.WorldAABB;
             group.ProxyId = _concealedAabbTree.AddProxy(ref aabb, group, 0);
 #endif
@@ -230,18 +229,19 @@ namespace Concealment
                 Log.Warn(new StackTrace());
                 return 0;
             }
+
+            var count = group.Grids.Count;
             Log.Debug($"Revealing grids: {group.GridNames}");
             group.Grids.ForEach(RevealEntity);
 #if !NOPHYS
             _concealGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);
 #endif
-            return group.Grids.Count;
+            return count;
         }
 
         public int RevealGridsInSphere(BoundingSphereD sphere)
         {
-            Log.Debug($"reveal in sphere {sphere.Center} | {sphere.Radius}");
             var revealed = 0;
 #if !NOPHYS
             _concealedAabbTree.OverlapAllBoundingSphere(ref sphere, _intersectGroups);
@@ -253,6 +253,7 @@ namespace Concealment
                     _intersectGroups.Add(group);
             }
 #endif
+            Log.Trace($"{_intersectGroups.Count} groups");
             foreach (var group in _intersectGroups)
                 revealed += RevealGroup(group);
 
@@ -262,23 +263,24 @@ namespace Concealment
 
         public int RevealNearbyGrids(double distanceFromPlayers)
         {
-            Log.Debug("Revealing nearby grids");
             var revealed = 0;
-            var playerSpheres = GetPlayerBoundingSpheres(distanceFromPlayers);
-            Log.Debug(playerSpheres.Count);
+            var playerSpheres = GetPlayerViewSpheres(distanceFromPlayers);
             foreach (var sphere in playerSpheres)
+            {
+                Log.Trace($"{sphere.Center}: {sphere.Radius}");
                 revealed += RevealGridsInSphere(sphere);
+            }
 
             if (revealed != 0)
                 Log.Info($"Revealed {revealed} grids near players.");
             return revealed;
         }
 
-        public int ConcealDistantGrids(double distanceFromPlayers)
+        public int ConcealGrids(double distanceFromPlayers)
         {
-            Log.Debug("Concealing distant grids");
+            Log.Debug("Concealing grids");
             int concealed = 0;
-            var playerSpheres = GetPlayerBoundingSpheres(distanceFromPlayers);
+            var playerSpheres = GetPlayerViewSpheres(distanceFromPlayers);
 
             ConcurrentBag<ConcealGroup> groups = new ConcurrentBag<ConcealGroup>();
             //Parallel.ForEach(MyCubeGridGroups.Static.Physical.Groups, group =>
@@ -288,10 +290,16 @@ namespace Concealment
 
                 var volume = group.GetWorldAABB();
                 if (playerSpheres.Any(s => s.Contains(volume) != ContainmentType.Disjoint))
+                {
+                    Log.Trace("group near player");
                     continue;
+                }
 
-                //if (IsExcluded(concealGroup))
-                //    return;
+                if (IsExcluded(concealGroup))
+                {
+                    Log.Trace("group excluded");
+                    continue;
+                }
 
                 groups.Add(concealGroup);
             }
@@ -312,11 +320,21 @@ namespace Concealment
             {
                 if (block == null)
                     continue;
+
+                if (block is IMyProductionBlock p && Settings.Data.ExemptProduction && p.IsProducing)
+                {
+                    Log.Trace($"{group.GridNames} exempted production ({p.CustomName} active)");
+                    return true;
+                }
+
                 if (Settings.Data.ExcludedSubtypes.Contains(block.BlockDefinition.Id.SubtypeName))
-                    return false;
+                {
+                    Log.Trace($"{group.GridNames} exempted subtype {block.BlockDefinition.Id.SubtypeName}");
+                    return true;
+                }
             }
 
-            return true;
+            return false;
         }
 
         public int RevealAll()
@@ -330,9 +348,9 @@ namespace Concealment
             return revealed;
         }
 
-        private List<BoundingSphereD> GetPlayerBoundingSpheres(double distance)
+        private List<BoundingSphereD> GetPlayerViewSpheres(double distance)
         {
-            return ((MyPlayerCollection)MyAPIGateway.Multiplayer.Players).GetOnlinePlayers().Where(p => p.Controller?.ControlledEntity != null).Select(p => new BoundingSphereD(p.Controller.ControlledEntity.Entity.PositionComp.GetPosition(), distance)).ToList();
+            return ((MyPlayerCollection)MyAPIGateway.Multiplayer.Players).GetOnlinePlayers().Select(p => new BoundingSphereD(p.GetPosition(), distance)).ToList();
         }
     }
 

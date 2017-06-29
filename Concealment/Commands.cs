@@ -16,7 +16,7 @@ namespace Concealment
             {
                 distance = Plugin.Settings.Data.ConcealDistance;
             }
-            var num = Plugin.ConcealDistantGrids(distance);
+            var num = Plugin.ConcealGrids(distance);
             Context.Respond($"{num} grids concealed.");
         }
 

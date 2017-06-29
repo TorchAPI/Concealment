@@ -13,6 +13,7 @@ namespace Concealment
         private ulong _concealInterval = 3600;
         private double _revealDistance = 50000;
         private ulong _revealInterval = 60;
+        private bool _exemptProduction;
 
         public MTObservableCollection<string> ExcludedSubtypes { get; } = new MTObservableCollection<string>();
 
@@ -46,27 +47,10 @@ namespace Concealment
             set { _revealDistance = value; OnPropertyChanged(); }
         }
 
-        public void Save(string path)
+        public bool ExemptProduction
         {
-            var xmlSerializer = new XmlSerializer(typeof(Settings));
-            using (var fileStream = File.Open(path, FileMode.OpenOrCreate))
-            {
-                xmlSerializer.Serialize(fileStream, this);
-            }
-        }
-
-        public static Settings LoadOrCreate(string path)
-        {
-            if (!File.Exists(path))
-                return new Settings();
-
-            var xmlSerializer = new XmlSerializer(typeof(Settings));
-            Settings result;
-            using (var fileStream = File.OpenRead(path))
-            {
-                result = (Settings)xmlSerializer.Deserialize(fileStream);
-            }
-            return result;
+            get => _exemptProduction;
+            set { _exemptProduction = value; OnPropertyChanged(); }
         }
     }
 }

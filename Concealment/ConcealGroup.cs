@@ -34,6 +34,7 @@ namespace Concealment
         public string GridNames
         {
             get { return string.Join(", ", Grids.Select(g => g.DisplayName)); }
+            set { }
         }
 
         public void UpdatePostConceal()

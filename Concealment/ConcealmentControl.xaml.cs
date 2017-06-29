@@ -45,7 +45,7 @@ namespace Concealment
         private void Conceal_OnClick(object sender, RoutedEventArgs e)
         {
             var p = Plugin;
-            Plugin.Torch.Invoke(delegate { p.ConcealDistantGrids(p.Settings.Data.ConcealDistance); });
+            Plugin.Torch.Invoke(delegate { p.ConcealGrids(p.Settings.Data.ConcealDistance); });
         }
 
         private void EditExclusion_OnClick(object sender, RoutedEventArgs e)
