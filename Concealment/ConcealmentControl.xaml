@@ -32,9 +32,9 @@
                 <Button Content="Manual Conceal" Margin="3" Click="Conceal_OnClick" />
                 <Button Content="Manual Reveal" Margin="3" Click="Reveal_OnClick" />
             </StackPanel>
-            <Button Content="Edit Excluded Subtypes" Margin="3" Click="RevealSelected_OnClick"/>
+            <Button Content="Edit Excluded Subtypes" Margin="3" Click="EditExclusion_OnClick"/>
         </StackPanel>
-        <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="EditExclusion_OnClick" />
+        <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="RevealSelected_OnClick" />
         <ListView Name="Concealed" Margin="3" DockPanel.Dock="Bottom" ItemsSource="{Binding ConcealGroups}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>

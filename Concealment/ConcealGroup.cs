@@ -45,6 +45,13 @@ namespace Concealment
             HookOnClosing();
         }
 
+        public void UpdatePostReveal()
+        {
+            IsConcealed = false;
+            foreach (var grid in Grids)
+                grid.OnClosing -= Grid_OnClosing;
+        }
+
         private void HookOnClosing()
         {
             foreach (var grid in Grids)

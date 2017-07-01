@@ -31,7 +31,7 @@ using VRageMath;
 
 namespace Concealment
 {
-    [Plugin("Concealment", "1.1.2", "17f44521-b77a-4e85-810f-ee73311cf75d")]
+    [Plugin("Concealment", "1.1.3", "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public sealed class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; private set; }
@@ -39,7 +39,7 @@ namespace Concealment
 
         private static readonly Logger Log = LogManager.GetLogger("Concealment");
         private UserControl _control;
-        private ulong _counter;
+        private ulong _counter = 1;
         private bool _init;
         private readonly List<ConcealGroup> _concealGroups = new List<ConcealGroup>();
         private readonly List<ConcealGroup> _intersectGroups;
@@ -59,9 +59,14 @@ namespace Concealment
         {
             base.Init(torch);
             Settings = Persistent<Settings>.Load(Path.Combine(StoragePath, "Concealment.cfg"));
+            Settings.Data.PropertyChanged += Data_PropertyChanged;
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
-            //torch.SessionUnloading += Torch_SessionUnloading;
             RegisterEntityStorage("Concealment", Id);
+        }
+
+        private void Data_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            RevealAll();
         }
 
         private void RegisterEntityStorage(string name, Guid id)
@@ -74,14 +79,9 @@ namespace Concealment
             MyDefinitionManager.Static.Definitions.AddDefinition(comp);
         }
 
-        private void Torch_SessionUnloading()
-        {
-            RevealAll();
-        }
-
         public override void Update()
         {
-            if (MyAPIGateway.Session == null)
+            if (MyAPIGateway.Session == null || !Settings.Data.Enabled)
                 return;
 
             if (_counter % Settings.Data.ConcealInterval == 0)
@@ -93,7 +93,6 @@ namespace Concealment
             if (_init)
                 return;
 
-            //MySession.Static.Players.PlayerRequesting += RevealSpawns;
             MyMultiplayer.Static.ClientJoined += RevealCryoPod;
 
             _init = true;
@@ -236,6 +235,7 @@ namespace Concealment
 #if !NOPHYS
             _concealGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);
+            group.UpdatePostReveal();
 #endif
             return count;
         }
