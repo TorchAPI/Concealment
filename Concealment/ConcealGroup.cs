@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using NLog;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
@@ -48,21 +49,26 @@ namespace Concealment
         public void UpdatePostReveal()
         {
             IsConcealed = false;
-            foreach (var grid in Grids)
-                grid.OnClosing -= Grid_OnClosing;
+            UnhookOnClosing();
         }
 
         private void HookOnClosing()
         {
             foreach (var grid in Grids)
-                grid.OnClosing += Grid_OnClosing;
+                grid.OnMarkForClose += Grid_OnMarkForClose;
         }
 
-        private void Grid_OnClosing(VRage.Game.Entity.MyEntity obj)
+        private void UnhookOnClosing()
         {
-            Closing?.Invoke(this);
             foreach (var grid in Grids)
-                grid.OnClosing -= Grid_OnClosing;
+                grid.OnMarkForClose -= Grid_OnMarkForClose;
+        }
+
+        private void Grid_OnMarkForClose(VRage.Game.Entity.MyEntity obj)
+        {
+            LogManager.GetLogger(nameof(ConcealGroup)).Info($"Grid group '{GridNames}' was marked for close.");
+            UnhookOnClosing();
+            Closing?.Invoke(this);
         }
 
         public void UpdateAABB()

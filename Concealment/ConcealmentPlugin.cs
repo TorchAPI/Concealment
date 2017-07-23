@@ -31,19 +31,20 @@ using VRageMath;
 
 namespace Concealment
 {
-    [Plugin("Concealment", "1.1.3", "17f44521-b77a-4e85-810f-ee73311cf75d")]
+    [Plugin("Concealment", "1.2.0", "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public sealed class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; private set; }
-        public MTObservableCollection<ConcealGroup> ConcealGroups { get; } = new MTObservableCollection<ConcealGroup>();
+        public ObservableList<ConcealGroup> ConcealedGroups { get; } = new ObservableList<ConcealGroup>();
 
+        private readonly Dictionary<long, Timer> _keepAliveTimers = new Dictionary<long, Timer>();
         private static readonly Logger Log = LogManager.GetLogger("Concealment");
         private UserControl _control;
-        private ulong _counter = 1;
+        private ulong _counter;
         private bool _init;
-        private readonly List<ConcealGroup> _concealGroups = new List<ConcealGroup>();
         private readonly List<ConcealGroup> _intersectGroups;
         private MyDynamicAABBTreeD _concealedAabbTree;
+        private bool _settingsChanged;
 
         public ConcealmentPlugin()
         {
@@ -66,7 +67,7 @@ namespace Concealment
 
         private void Data_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            RevealAll();
+            _settingsChanged = true;
         }
 
         private void RegisterEntityStorage(string name, Guid id)
@@ -79,34 +80,71 @@ namespace Concealment
             MyDefinitionManager.Static.Definitions.AddDefinition(comp);
         }
 
+        //TODO: divide conceal/reveal runs over several ticks to avoid stuttering.
         public override void Update()
         {
             if (MyAPIGateway.Session == null || !Settings.Data.Enabled)
                 return;
 
-            if (_counter % Settings.Data.ConcealInterval == 0)
+            if (_counter % (ulong)Settings.Data.ConcealInterval == 0)
                 ConcealGrids(Settings.Data.ConcealDistance);
-            if (_counter % Settings.Data.RevealInterval == 0)
-                RevealNearbyGrids(Settings.Data.RevealDistance);
+            if (_counter % (ulong)Settings.Data.RevealInterval == 0)
+                RevealGrids(Settings.Data.RevealDistance);
             _counter += 1;
 
-            if (_init)
+            if (_init || MyAPIGateway.TerminalControls == null)
                 return;
+
+            var keepAliveAction = MyAPIGateway.TerminalControls.CreateAction<IMyRemoteControl>("Concealment.KeepAlive");
+            keepAliveAction.Action = KeepAlive;
+            MyAPIGateway.TerminalControls.AddAction<IMyRemoteControl>(keepAliveAction);
 
             MyMultiplayer.Static.ClientJoined += RevealCryoPod;
 
             _init = true;
         }
 
+        private void KeepAlive(IMyTerminalBlock block)
+        {
+            var rc = (IMyRemoteControl)block;
+
+            if (rc.CubeGrid.IsStatic)
+                return;
+
+            Log.Debug($"Keepalive triggered on grid {block.CubeGrid.DisplayName}");
+            var dueTime = TimeSpan.FromSeconds(Settings.Data.ConcealInterval / 60d);
+            if (_keepAliveTimers.TryGetValue(block.CubeGrid.EntityId, out Timer timer))
+            {
+                timer.Change(dueTime, TimeSpan.Zero);
+            }
+            else
+            {
+                var newTimer = new Timer(KeepAliveCallback, block.CubeGrid.EntityId, dueTime, TimeSpan.Zero);
+                _keepAliveTimers.Add(block.CubeGrid.EntityId, newTimer);
+            }
+        }
+
+        private void KeepAliveCallback(object state)
+        {
+            var grid = (long)state;
+            Log.Debug($"Keepalive expired on grid {grid}");
+            Torch.Invoke(() =>
+            {
+                var timer = _keepAliveTimers[grid];
+                timer.Dispose();
+                _keepAliveTimers.Remove(grid);
+            });
+        }
+
         public override void Dispose()
         {
-            RevealAll();
+            //RevealAll();
             Settings.Save("Concealment.cfg");
         }
 
         public void GetConcealedGrids(List<IMyCubeGrid> grids)
         {
-            _concealGroups.SelectMany(x => x.Grids).ForEach(grids.Add);
+            ConcealedGroups.SelectMany(x => x.Grids).ForEach(grids.Add);
         }
 
         private void RevealCryoPod(ulong steamId)
@@ -114,9 +152,9 @@ namespace Concealment
             Torch.Invoke(() =>
             {
                 Log.Debug(nameof(RevealCryoPod));
-                for (var i = _concealGroups.Count - 1; i >= 0; i--)
+                for (var i = ConcealedGroups.Count - 1; i >= 0; i--)
                 {
-                    var group = _concealGroups[i];
+                    var group = ConcealedGroups[i];
 
                     if (group.IsCryoOccupied(steamId))
                     {
@@ -136,9 +174,9 @@ namespace Concealment
                 if (identityId == 0)
                     return;
 
-                for (var i = _concealGroups.Count - 1; i >= 0; i--)
+                for (var i = ConcealedGroups.Count - 1; i >= 0; i--)
                 {
-                    var group = _concealGroups[i];
+                    var group = ConcealedGroups[i];
 
                     if (group.IsMedicalRoomAvailable(identityId))
                         RevealGroup(group);
@@ -194,7 +232,7 @@ namespace Concealment
 
         private int ConcealGroup(ConcealGroup group)
         {
-            if (_concealGroups.Any(g => g.Id == group.Id))
+            if (ConcealedGroups.Any(g => g.Id == group.Id))
                 return 0;
 
             Log.Debug($"Concealing grids: {group.GridNames}");
@@ -210,7 +248,7 @@ namespace Concealment
                 group.UpdatePostConceal();
                 Log.Debug($"Group {group.Id} cached");
                 group.IsConcealed = true;
-                Torch.Invoke(() => _concealGroups.Add(group));
+                Torch.Invoke(() => ConcealedGroups.Add(group));
             });
             return group.Grids.Count;
         }
@@ -233,7 +271,7 @@ namespace Concealment
             Log.Debug($"Revealing grids: {group.GridNames}");
             group.Grids.ForEach(RevealEntity);
 #if !NOPHYS
-            _concealGroups.Remove(group);
+            ConcealedGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);
             group.UpdatePostReveal();
 #endif
@@ -246,7 +284,7 @@ namespace Concealment
 #if !NOPHYS
             _concealedAabbTree.OverlapAllBoundingSphere(ref sphere, _intersectGroups);
 #else
-            foreach (var group in ConcealGroups)
+            foreach (var group in ConcealedGroups)
             {
                 group.UpdateAABB();
                 if (sphere.Contains(group.WorldAABB) != ContainmentType.Disjoint)
@@ -261,7 +299,7 @@ namespace Concealment
             return revealed;
         }
 
-        public int RevealNearbyGrids(double distanceFromPlayers)
+        public int RevealGrids(double distanceFromPlayers)
         {
             var revealed = 0;
             var playerSpheres = GetPlayerViewSpheres(distanceFromPlayers);
@@ -271,42 +309,62 @@ namespace Concealment
                 revealed += RevealGridsInSphere(sphere);
             }
 
+            if (_settingsChanged)
+            {
+                for (var i = ConcealedGroups.Count; i >= 0; i--)
+                {
+                    if (IsExcluded(ConcealedGroups[i]))
+                        revealed += RevealGroup(ConcealedGroups[i]);
+                }
+
+                _settingsChanged = false;
+            }
+
             if (revealed != 0)
                 Log.Info($"Revealed {revealed} grids near players.");
             return revealed;
         }
 
-        public int ConcealGrids(double distanceFromPlayers)
+        public int ConcealGrids(double distanceFromPlayers = 0)
         {
             Log.Debug("Concealing grids");
             int concealed = 0;
             var playerSpheres = GetPlayerViewSpheres(distanceFromPlayers);
 
             ConcurrentBag<ConcealGroup> groups = new ConcurrentBag<ConcealGroup>();
-            //Parallel.ForEach(MyCubeGridGroups.Static.Physical.Groups, group =>
-            foreach (var group in MyCubeGridGroups.Static.Physical.Groups)
+            var sw = Stopwatch.StartNew();
+            Parallel.ForEach(MyCubeGridGroups.Static.Physical.Groups, group =>
             {
                 var concealGroup = new ConcealGroup(group);
 
-                var volume = group.GetWorldAABB();
-                if (playerSpheres.Any(s => s.Contains(volume) != ContainmentType.Disjoint))
+                if (distanceFromPlayers != 0)
                 {
-                    Log.Trace("group near player");
-                    continue;
+                    var volume = group.GetWorldAABB();
+                    if (playerSpheres.Any(s => s.Contains(volume) != ContainmentType.Disjoint))
+                    {
+                        Log.Trace("group near player");
+                        return;
+                    }
                 }
 
                 if (IsExcluded(concealGroup))
                 {
                     Log.Trace("group excluded");
-                    continue;
+                    return;
                 }
 
                 groups.Add(concealGroup);
-            }
+            });
+            Log.Debug($"Scanned grids in {sw.ElapsedMilliseconds}ms.");
+            sw.Restart();
+
             foreach (var group in groups)
             {
                 concealed += ConcealGroup(group);
             }
+            Log.Debug($"Concealed grids in {sw.ElapsedMilliseconds}ms.");
+            sw.Stop();
+
 
             if (concealed != 0)
                 Log.Info($"Concealed {concealed} grids distant from players.");
@@ -316,25 +374,47 @@ namespace Concealment
 
         public bool IsExcluded(ConcealGroup group)
         {
-            foreach (var block in group.Grids.SelectMany(g => g.CubeBlocks).Select(x => x.FatBlock))
+            var pirateId = MyPirateAntennas.GetPiratesId();
+            foreach (var grid in group.Grids)
             {
-                if (block == null)
-                    continue;
-
-                if (block is IMyProductionBlock p && Settings.Data.ExemptProduction && p.IsProducing)
+                if (_keepAliveTimers.ContainsKey(grid.EntityId))
                 {
-                    Log.Trace($"{group.GridNames} exempted production ({p.CustomName} active)");
+                    Log.Trace($"{group.GridNames} is kept alive by PB action");
                     return true;
                 }
 
-                if (Settings.Data.ExcludedSubtypes.Contains(block.BlockDefinition.Id.SubtypeName))
+                if (!Settings.Data.ConcealPirates && grid.BigOwners.Contains(pirateId))
                 {
-                    Log.Trace($"{group.GridNames} exempted subtype {block.BlockDefinition.Id.SubtypeName}");
+                    Log.Trace($"{group.GridNames} is kept alive by pirate ownership");
                     return true;
                 }
             }
 
-            return false;
+            var exclude = false;
+            Parallel.ForEach(group.Grids, grid =>
+            {
+                foreach (var block in grid.CubeBlocks.Select(x => x.FatBlock))
+                {
+                    if (block == null)
+                        continue;
+
+                    if (block is IMyProductionBlock p && !Settings.Data.ConcealProduction && p.IsProducing)
+                    {
+                        Log.Trace($"{group.GridNames} exempted production ({p.CustomName} active)");
+                        exclude = true;
+                        break;
+                    }
+
+                    if (Settings.Data.ExcludedSubtypes.Contains(block.BlockDefinition.Id.SubtypeName))
+                    {
+                        Log.Trace($"{group.GridNames} exempted subtype {block.BlockDefinition.Id.SubtypeName}");
+                        exclude = true;
+                        break;
+                    }
+                }
+            });
+
+            return exclude;
         }
 
         public int RevealAll()
@@ -342,8 +422,8 @@ namespace Concealment
             Log.Debug("Revealing all grids");
 
             var revealed = 0;
-            for (var i = _concealGroups.Count - 1; i >= 0; i--)
-                revealed += RevealGroup(_concealGroups[i]);
+            for (var i = ConcealedGroups.Count - 1; i >= 0; i--)
+                revealed += RevealGroup(ConcealedGroups[i]);
 
             return revealed;
         }

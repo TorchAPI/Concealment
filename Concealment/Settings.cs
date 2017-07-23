@@ -11,12 +11,13 @@ namespace Concealment
     {
         private bool _enabled = true;
         private double _concealDistance = 75000;
-        private ulong _concealInterval = 3600;
+        private int _concealInterval = 3600;
         private double _revealDistance = 50000;
-        private ulong _revealInterval = 60;
-        private bool _exemptProduction;
+        private int _revealInterval = 60;
+        private bool _concealProduction;
+        private bool _concealPirates;
 
-        public MTObservableCollection<string> ExcludedSubtypes { get; } = new MTObservableCollection<string>();
+        public ObservableList<string> ExcludedSubtypes { get; } = new ObservableList<string>();
 
         public bool Enabled
         {
@@ -24,13 +25,13 @@ namespace Concealment
             set { _enabled = value; OnPropertyChanged(); }
         }
 
-        public ulong ConcealInterval
+        public int ConcealInterval
         {
             get => _concealInterval;
             set { _concealInterval = value; OnPropertyChanged(); }
         }
 
-        public ulong RevealInterval
+        public int RevealInterval
         {
             get => _revealInterval;
             set { _revealInterval = value; OnPropertyChanged(); }
@@ -48,10 +49,16 @@ namespace Concealment
             set { _revealDistance = value; OnPropertyChanged(); }
         }
 
-        public bool ExemptProduction
+        public bool ConcealProduction
         {
-            get => _exemptProduction;
-            set { _exemptProduction = value; OnPropertyChanged(); }
+            get => _concealProduction;
+            set { _concealProduction = value; OnPropertyChanged(); }
+        }
+
+        public bool ConcealPirates
+        {
+            get => _concealPirates;
+            set { _concealPirates = value; OnPropertyChanged(); }
         }
     }
 }

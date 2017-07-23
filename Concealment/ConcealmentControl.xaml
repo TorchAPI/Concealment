@@ -6,11 +6,19 @@
              xmlns:local="clr-namespace:Concealment"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top">
+    <UserControl.DataContext>
+        <local:ConcealmentPlugin/>
+    </UserControl.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
             <StackPanel DataContext="{Binding Settings.Data}">
                 <CheckBox Content="Enable Concealment" Margin="3" IsChecked="{Binding Enabled}" />
-                <CheckBox Content="Exempt Production" ToolTip="Don't conceal grids with active production blocks." Margin="3" IsChecked="{Binding ExemptProduction}" />
+                <CheckBox Content="Conceal Production" ToolTip="Conceal grids with active production blocks." Margin="3" IsChecked="{Binding ConcealProduction}" />
+                <CheckBox Content="Conceal Pirates" ToolTip="Conceal grids owned by Space Pirates." Margin="3" IsChecked="{Binding ConcealPirates}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBox Margin="3" Width="150" Text="{Binding ConcealDistance}" />
                     <Label Content="Conceal Distance (meters)" Margin="3" />
@@ -33,9 +41,10 @@
                 <Button Content="Manual Reveal" Margin="3" Click="Reveal_OnClick" />
             </StackPanel>
             <Button Content="Edit Excluded Subtypes" Margin="3" Click="EditExclusion_OnClick"/>
+            <Label Content="{Binding ConcealedGroups.Count, StringFormat=Concealed groups: {0}}"/>
+            <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="RevealSelected_OnClick" />
         </StackPanel>
-        <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="RevealSelected_OnClick" />
-        <ListView Name="Concealed" Margin="3" DockPanel.Dock="Bottom" ItemsSource="{Binding ConcealGroups}">
+        <ListView Grid.Row="1" Name="Concealed" Margin="3" DockPanel.Dock="Bottom" ItemsSource="{Binding ConcealedGroups}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
@@ -44,6 +53,6 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ListView>
-    </DockPanel>
+    </Grid>
 
 </UserControl>

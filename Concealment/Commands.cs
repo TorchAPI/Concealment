@@ -41,5 +41,19 @@ namespace Concealment
             int num = Plugin.RevealAll();
             Context.Respond($"{num} grids revealed.");
         }
+
+        [Command("conceal on", "Enable concealment.")]
+        public void Enable()
+        {
+            Plugin.Settings.Data.Enabled = true;
+            Plugin.ConcealGrids(Plugin.Settings.Data.ConcealDistance);
+        }
+
+        [Command("conceal off", "Disable concealment.")]
+        public void Disable()
+        {
+            Plugin.Settings.Data.Enabled = false;
+            Plugin.RevealAll();
+        }
     }
 }

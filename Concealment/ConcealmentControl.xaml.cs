@@ -39,7 +39,7 @@ namespace Concealment
         private void Reveal_OnClick(object sender, RoutedEventArgs e)
         {
             var p = Plugin;
-            Plugin.Torch.Invoke(delegate { p.RevealNearbyGrids(p.Settings.Data.RevealDistance); });
+            Plugin.Torch.Invoke(delegate { p.RevealGrids(p.Settings.Data.RevealDistance); });
         }
 
         private void Conceal_OnClick(object sender, RoutedEventArgs e)
