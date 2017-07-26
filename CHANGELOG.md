@@ -1,3 +1,7 @@
+# Concealment 1.2.1
+* Fixes
+    - Fixed off-by-one crash in RevealGrids()
+
 # Concealment 1.2
 * Features
     - Added option to exempt pirate-owned grids

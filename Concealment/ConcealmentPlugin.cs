@@ -31,7 +31,7 @@ using VRageMath;
 
 namespace Concealment
 {
-    [Plugin("Concealment", "1.2", "17f44521-b77a-4e85-810f-ee73311cf75d")]
+    [Plugin("Concealment", "1.2.1", "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public sealed class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; private set; }
@@ -311,7 +311,7 @@ namespace Concealment
 
             if (_settingsChanged)
             {
-                for (var i = ConcealedGroups.Count; i >= 0; i--)
+                for (var i = ConcealedGroups.Count - 1; i >= 0; i--)
                 {
                     if (IsExcluded(ConcealedGroups[i]))
                         revealed += RevealGroup(ConcealedGroups[i]);
