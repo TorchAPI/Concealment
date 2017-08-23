@@ -45,6 +45,7 @@ namespace Concealment
         private readonly List<ConcealGroup> _intersectGroups;
         private MyDynamicAABBTreeD _concealedAabbTree;
         private bool _settingsChanged;
+        private bool _ready;
 
         public ConcealmentPlugin()
         {
@@ -86,14 +87,27 @@ namespace Concealment
             if (MyAPIGateway.Session == null || !Settings.Data.Enabled)
                 return;
 
-            if (_counter % (ulong)Settings.Data.ConcealInterval == 0)
-                ConcealGrids(Settings.Data.ConcealDistance);
-            if (_counter % (ulong)Settings.Data.RevealInterval == 0)
-                RevealGrids(Settings.Data.RevealDistance);
-            _counter += 1;
+            if (_ready)
+            {
+                if (_counter % (ulong)Settings.Data.ConcealInterval == 0)
+                    ConcealGrids(Settings.Data.ConcealDistance);
+                if (_counter % (ulong)Settings.Data.RevealInterval == 0)
+                    RevealGrids(Settings.Data.RevealDistance);
+                _counter += 1;
+            }
 
             if (_init || MyAPIGateway.TerminalControls == null)
                 return;
+
+            //Make sure the game physics has time to initialize.
+            var delayTimer = new System.Timers.Timer
+            {
+                AutoReset = false,
+                Interval = 5000,
+            };
+
+            delayTimer.Elapsed += (sender, args) => _ready = true;
+            delayTimer.Start();
 
             var keepAliveAction = MyAPIGateway.TerminalControls.CreateAction<IMyRemoteControl>("Concealment.KeepAlive");
             keepAliveAction.Action = KeepAlive;
