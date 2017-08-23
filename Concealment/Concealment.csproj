@@ -67,33 +67,33 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HavokWrapper">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\HavokWrapper.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\HavokWrapper.dll</HintPath>
     </Reference>
     <Reference Include="NLog">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\NLog.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\bin\x64\Release\NLog.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Sandbox.Common">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Common.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\Sandbox.Common.dll</HintPath>
     </Reference>
     <Reference Include="Sandbox.Game">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Game.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\Sandbox.Game.dll</HintPath>
     </Reference>
     <Reference Include="Sandbox.Graphics">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Graphics.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\Sandbox.Graphics.dll</HintPath>
     </Reference>
     <Reference Include="SpaceEngineers.Game">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.Game.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\SpaceEngineers.Game.dll</HintPath>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\SpaceEngineers.ObjectBuilders.dll</HintPath>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders.XmlSerializers">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
     </Reference>
     <Reference Include="SteamSDK">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SteamSDK.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\SteamSDK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -106,50 +106,50 @@
     <Reference Include="System.Xml" />
     <Reference Include="Torch, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Torch\Torch.Server\bin\x64\Release\Torch.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\bin\x64\Release\Torch.dll</HintPath>
     </Reference>
     <Reference Include="Torch.API, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Torch\Torch.Server\bin\x64\Release\Torch.API.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\bin\x64\Release\Torch.API.dll</HintPath>
     </Reference>
     <Reference Include="VRage">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Audio">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Audio.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Audio.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Dedicated">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Dedicated.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Dedicated.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Game">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Game.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Game.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Game.XmlSerializers">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Game.XmlSerializers.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Game.XmlSerializers.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Input">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Input.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Input.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Library">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Library.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Library.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Math">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Math.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Math.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Native">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Native.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Native.dll</HintPath>
     </Reference>
     <Reference Include="VRage.OpenVRWrapper">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.OpenVRWrapper.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.OpenVRWrapper.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Render">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Render.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Render.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Render11">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Render11.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Render11.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Scripting">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Scripting.dll</HintPath>
+      <HintPath>$(SolutionDir)\..\..\Torch\GameBinaries\VRage.Scripting.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
