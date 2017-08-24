@@ -204,10 +204,8 @@ namespace Concealment
                 return;
 
             entity.GetStorage().SetValue(Id, "True");
-#if !NOPHYS
             MyGamePruningStructure.Remove((MyEntity)entity);
             entity.Physics?.Deactivate();
-#endif
             UnregisterRecursive(entity);
 
             void UnregisterRecursive(IMyEntity e)
@@ -227,10 +225,8 @@ namespace Concealment
                 return;
 
             entity.GetStorage().SetValue(Id, "False");
-#if !NOPHYS
             MyGamePruningStructure.Add((MyEntity)entity);
             entity.Physics?.Activate();
-#endif
             RegisterRecursive(entity);
 
             void RegisterRecursive(IMyEntity e)
@@ -251,11 +247,9 @@ namespace Concealment
 
             Log.Debug($"Concealing grids: {group.GridNames}");
             group.Grids.ForEach(ConcealEntity);
-#if !NOPHYS
             group.UpdateAABB();
             var aabb = group.WorldAABB;
             group.ProxyId = _concealedAabbTree.AddProxy(ref aabb, group, 0);
-#endif
             group.Closing += Group_Closing;
             Task.Run(() =>
             {
@@ -284,27 +278,16 @@ namespace Concealment
             var count = group.Grids.Count;
             Log.Debug($"Revealing grids: {group.GridNames}");
             group.Grids.ForEach(RevealEntity);
-#if !NOPHYS
             ConcealedGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);
             group.UpdatePostReveal();
-#endif
             return count;
         }
 
         public int RevealGridsInSphere(BoundingSphereD sphere)
         {
             var revealed = 0;
-#if !NOPHYS
             _concealedAabbTree.OverlapAllBoundingSphere(ref sphere, _intersectGroups);
-#else
-            foreach (var group in ConcealedGroups)
-            {
-                group.UpdateAABB();
-                if (sphere.Contains(group.WorldAABB) != ContainmentType.Disjoint)
-                    _intersectGroups.Add(group);
-            }
-#endif
             Log.Trace($"{_intersectGroups.Count} groups");
             foreach (var group in _intersectGroups)
                 revealed += RevealGroup(group);

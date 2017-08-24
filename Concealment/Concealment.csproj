@@ -2,8 +2,6 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E5C0184B-7DC4-43D8-872E-2F71162748AA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -12,26 +10,9 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x64\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -39,26 +20,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x64\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_NoPhys|AnyCPU'">
-    <OutputPath>bin\Release_NoPhys\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_NoPhys|x64'">
-    <OutputPath>bin\x64\Release_NoPhys\</OutputPath>
-    <DefineConstants>TRACE;NOPHYS</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -67,33 +30,42 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HavokWrapper">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\HavokWrapper.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\HavokWrapper.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="NLog">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\NLog.dll</HintPath>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Sandbox.Common">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Common.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\Sandbox.Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Game">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Game.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\Sandbox.Game.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Graphics">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Graphics.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\Sandbox.Graphics.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.Game">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.Game.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\SpaceEngineers.Game.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\SpaceEngineers.ObjectBuilders.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders.XmlSerializers">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SteamSDK">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SteamSDK.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\SteamSDK.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -106,50 +78,65 @@
     <Reference Include="System.Xml" />
     <Reference Include="Torch, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Torch\Torch.Server\bin\x64\Release\Torch.dll</HintPath>
+      <HintPath>$(SolutionDir)\TorchBinaries\Torch.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Torch.API, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Torch\Torch.Server\bin\x64\Release\Torch.API.dll</HintPath>
+      <HintPath>$(SolutionDir)\TorchBinaries\Torch.API.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Audio">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Audio.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Audio.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Dedicated">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Dedicated.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Dedicated.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Game">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Game.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Game.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Game.XmlSerializers">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Game.XmlSerializers.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Game.XmlSerializers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Input">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Input.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Input.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Library">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Library.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Library.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Math">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Math.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Math.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Native">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Native.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Native.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.OpenVRWrapper">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.OpenVRWrapper.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.OpenVRWrapper.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Render">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Render.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Render.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Render11">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Render11.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Render11.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Scripting">
-      <HintPath>..\..\..\..\..\..\..\steamcmd\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Scripting.dll</HintPath>
+      <HintPath>$(SolutionDir)\GameBinaries\VRage.Scripting.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
@@ -182,6 +169,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
