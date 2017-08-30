@@ -9,8 +9,8 @@ def test_with_torch(branch)
 		}
 
 		stage('Build + Torch ' + branch) {
-			bat "\"${tool 'MSBuild'}msbuild\" Concealment.sln /p:Configuration=Release /p:Platform=x64 /t:Clean"
-			// bat "\"${tool 'MSBuild'}msbuild\" Concealment.sln /p:Configuration=Release /p:Platform=x64 /t:TransformOnBuild"
+			currentBuild.description = bat(returnStdout: true, script: '@powershell -File Versioning/version.ps1').trim()
+			bat "\"${tool 'MSBuild'}msbuild\" Essentials.sln /p:Configuration=Release /p:Platform=x64 /t:Clean"
 			bat "\"${tool 'MSBuild'}msbuild\" Concealment.sln /p:Configuration=Release /p:Platform=x64"
 		}
 
