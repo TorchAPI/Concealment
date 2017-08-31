@@ -31,7 +31,7 @@ using VRageMath;
 
 namespace Concealment
 {
-    [Plugin("Concealment", "1.2.1", "17f44521-b77a-4e85-810f-ee73311cf75d")]
+    [Plugin("Concealment", typeof(ConcealmentPlugin), "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public sealed class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; private set; }

@@ -141,6 +141,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Versioning\AssemblyVersion.cs">
+      <Link>Properties\AssemblyVersion.cs</Link>
+    </Compile>
     <Compile Include="Commands.cs" />
     <Compile Include="ConcealGroup.cs" />
     <Compile Include="ConcealmentControl.xaml.cs">
