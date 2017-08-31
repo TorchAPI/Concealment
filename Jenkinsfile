@@ -9,12 +9,12 @@ def test_with_torch(branch)
 		}
 
 		stage('Build + Torch ' + branch) {
+			currentBuild.description = bat(returnStdout: true, script: '@powershell -File Versioning/version.ps1').trim()
 			bat "\"${tool 'MSBuild'}msbuild\" Concealment.sln /p:Configuration=Release /p:Platform=x64 /t:Clean"
-			// bat "\"${tool 'MSBuild'}msbuild\" Concealment.sln /p:Configuration=Release /p:Platform=x64 /t:TransformOnBuild"
 			bat "\"${tool 'MSBuild'}msbuild\" Concealment.sln /p:Configuration=Release /p:Platform=x64"
 		}
 
-	/*
+
 		stage('Test + Torch ' + branch) {
 			bat 'IF NOT EXIST reports MKDIR reports'
 			bat "\"packages/xunit.runner.console.2.2.0/tools/xunit.console.exe\" \"bin-test/x64/Release/Concealment.Tests.dll\" -parallel none -xml \"reports/Concealment.Tests.xml\""
@@ -32,7 +32,7 @@ def test_with_torch(branch)
 		        ]]
 		    ])
 		}
-	*/
+		
 		return true
 	} catch (e) {
 		return false
@@ -42,6 +42,7 @@ def test_with_torch(branch)
 node {
 	stage('Checkout') {
 		checkout scm
+		bat 'git pull --tags'
 	}
 
 	stage('Acquire SE') {
