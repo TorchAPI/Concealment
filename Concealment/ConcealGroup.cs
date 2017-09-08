@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NLog;
+using Sandbox.Engine.Physics;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using SpaceEngineers.Game.Entities.Blocks;
+using VRage.Game.Entity;
 using VRage.Groups;
+using VRage.ModAPI;
 using VRageMath;
 
 namespace Concealment
@@ -120,6 +123,89 @@ namespace Concealment
 
             return false;
         }
+
+        /// <summary>
+        /// Conceals this group from game and physics logic.
+        /// </summary>
+        public void Conceal()
+        {
+            foreach (var body in Grids)
+                if (body.Parent == null)
+                    UnregisterRecursive(body);
+
+            foreach (var body in Grids)
+                body.Physics?.UnweldAll(false);
+            foreach (var body in Grids)
+                body.Physics?.Deactivate();
+
+            foreach (var entity in Grids)
+                if (entity.Parent == null)
+                    MyGamePruningStructure.Remove(entity);
+
+            void UnregisterRecursive(IMyEntity e)
+            {
+                MyEntities.UnregisterForUpdate((MyEntity)e);
+                if (e.Hierarchy == null)
+                    return;
+
+                foreach (var child in e.Hierarchy.Children)
+                    UnregisterRecursive(child.Container.Entity);
+            }
+        }
+
+        /// <summary>
+        /// Reveals this group to game and physics logic.
+        /// </summary>
+        public void Reveal()
+        {
+            foreach (var entity in Grids)
+                if (entity.Parent == null)
+                    MyGamePruningStructure.Add(entity);
+
+
+            var weldGroups = new HashSet<MyGroups<MyEntity, MyWeldGroupData>.Group>();
+            foreach (var body in Grids)
+            {
+                if (body.Physics == null)
+                    continue;
+                var group = MyWeldingGroups.Static.GetGroup(body);
+                if (group == null)
+                    body.Physics.Activate();
+                else
+                    weldGroups.Add(group);
+            }
+            foreach (var group in weldGroups)
+            {
+                var body = group.GroupData.Parent;
+                if (!(body.Physics is MyPhysicsBody bodyPhysics))
+                    continue;
+                bodyPhysics.Activate();
+
+                foreach (var child in group.Nodes)
+                    if (child.NodeData != body &&
+                        !child.NodeData.MarkedForClose &&
+                        child.NodeData.Physics is MyPhysicsBody physBody)
+                        bodyPhysics.Weld(physBody);
+
+                body.RaisePhysicsChanged();
+            }
+
+
+            foreach (var entity in Grids)
+                if (entity.Parent == null)
+                    RegisterRecursive(entity);
+
+            void RegisterRecursive(IMyEntity e)
+            {
+                MyEntities.RegisterForUpdate((MyEntity)e);
+                if (e.Hierarchy == null)
+                    return;
+
+                foreach (var child in e.Hierarchy.Children)
+                    RegisterRecursive(child.Container.Entity);
+            }
+        }
+
     }
 
 }
