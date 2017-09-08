@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using Havok;
 using NLog;
 using Sandbox.Definitions;
 using Sandbox.Engine.Multiplayer;
@@ -23,7 +22,6 @@ using Torch.Managers;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Definitions;
-using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.ComponentSystem;
 using VRage.ModAPI;
@@ -54,7 +52,7 @@ namespace Concealment
 
         UserControl IWpfPlugin.GetControl()
         {
-            return _control ?? (_control = new ConcealmentControl {DataContext = this});
+            return _control ?? (_control = new ConcealmentControl { DataContext = this });
         }
 
         public override void Init(ITorchBase torch)
@@ -198,47 +196,6 @@ namespace Concealment
             });
         }
 
-        private void ConcealEntity(IMyEntity entity)
-        {
-            if (entity != entity.GetTopMostParent())
-                return;
-
-            entity.GetStorage().SetValue(Id, "True");
-            MyGamePruningStructure.Remove((MyEntity)entity);
-            entity.Physics?.Deactivate();
-            UnregisterRecursive(entity);
-
-            void UnregisterRecursive(IMyEntity e)
-            {
-                MyEntities.UnregisterForUpdate((MyEntity)e);
-                if (e.Hierarchy == null)
-                    return;
-
-                foreach (var child in e.Hierarchy.Children)
-                    UnregisterRecursive(child.Container.Entity);
-            }
-        }
-
-        private void RevealEntity(IMyEntity entity)
-        {
-            if (entity != entity.GetTopMostParent())
-                return;
-
-            entity.GetStorage().SetValue(Id, "False");
-            MyGamePruningStructure.Add((MyEntity)entity);
-            entity.Physics?.Activate();
-            RegisterRecursive(entity);
-
-            void RegisterRecursive(IMyEntity e)
-            {
-                MyEntities.RegisterForUpdate((MyEntity)e);
-                if (e.Hierarchy == null)
-                    return;
-
-                foreach (var child in e.Hierarchy.Children)
-                    RegisterRecursive(child.Container.Entity);
-            }
-        }
 
         private int ConcealGroup(ConcealGroup group)
         {
@@ -246,7 +203,10 @@ namespace Concealment
                 return 0;
 
             Log.Debug($"Concealing grids: {group.GridNames}");
-            group.Grids.ForEach(ConcealEntity);
+            group.Conceal();
+            foreach (var entity in group.Grids)
+                entity.GetStorage().SetValue(Id, "True");
+
             group.UpdateAABB();
             var aabb = group.WorldAABB;
             group.ProxyId = _concealedAabbTree.AddProxy(ref aabb, group, 0);
@@ -277,7 +237,10 @@ namespace Concealment
 
             var count = group.Grids.Count;
             Log.Debug($"Revealing grids: {group.GridNames}");
-            group.Grids.ForEach(RevealEntity);
+            group.Reveal();
+            foreach (var entity in group.Grids)
+                entity.GetStorage().SetValue(Id, "False");
+
             ConcealedGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);
             group.UpdatePostReveal();
