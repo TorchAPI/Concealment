@@ -29,7 +29,6 @@ using VRageMath;
 
 namespace Concealment
 {
-    [Plugin("Concealment", typeof(ConcealmentPlugin), "17f44521-b77a-4e85-810f-ee73311cf75d")]
     public sealed class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; private set; }
@@ -69,8 +68,10 @@ namespace Concealment
             _settingsChanged = true;
         }
 
+        //TODO: make this stop spamming the log with warnings
         private void RegisterEntityStorage(string name, Guid id)
         {
+            return;
             var comp = new MyModStorageComponentDefinition
             {
                 Id = new MyDefinitionId(typeof(MyObjectBuilder_ModStorageComponent), name),
@@ -204,8 +205,8 @@ namespace Concealment
 
             Log.Debug($"Concealing grids: {group.GridNames}");
             group.Conceal();
-            foreach (var entity in group.Grids)
-                entity.GetStorage().SetValue(Id, "True");
+            /*foreach (var entity in group.Grids)
+                entity.GetStorage().SetValue(Id, "True");*/
 
             group.UpdateAABB();
             var aabb = group.WorldAABB;
@@ -238,8 +239,8 @@ namespace Concealment
             var count = group.Grids.Count;
             Log.Debug($"Revealing grids: {group.GridNames}");
             group.Reveal();
-            foreach (var entity in group.Grids)
-                entity.GetStorage().SetValue(Id, "False");
+            /*foreach (var entity in group.Grids)
+                entity.GetStorage().SetValue(Id, "False");*/
 
             ConcealedGroups.Remove(group);
             _concealedAabbTree.RemoveProxy(group.ProxyId);

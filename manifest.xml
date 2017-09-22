@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>Concealment</Name>
+  <Guid>17f44521-b77a-4e85-810f-ee73311cf75d</Guid>
+  <Repository>TorchAPI/Concealment</Repository>
+  <Version>${VERSION}</Version>
+</PluginManifest>
