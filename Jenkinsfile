@@ -65,7 +65,7 @@ node {
 	if (result) {
 		currentBuild.result = "SUCCESS"
 		stage('Archive') {
-			archiveArtifacts artifacts: "bin/x64/Release/Concealment.*", caseSensitive: false, fingerprint: true, onlyIfSuccessful: true
+			archiveArtifacts artifacts: "bin/x64/${buildMode}/Concealment.*", caseSensitive: false, fingerprint: true, onlyIfSuccessful: true
 
 			zipFile = "bin\\concealment.zip"
 			packageDir = "bin\\concealment\\"
