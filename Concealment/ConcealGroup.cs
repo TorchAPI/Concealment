@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Havok;
 using NLog;
 using Sandbox.Engine.Physics;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using SpaceEngineers.Game.Entities.Blocks;
+using Torch.Utils;
 using VRage.Game.Entity;
 using VRage.Groups;
 using VRage.ModAPI;
@@ -134,13 +136,44 @@ namespace Concealment
                     UnregisterRecursive(body);
 
             foreach (var body in Grids)
-                body.Physics?.UnweldAll(false);
-            foreach (var body in Grids)
-                body.Physics?.Deactivate();
+            {
+                var world = body.Physics?.HavokWorld;
+                if (world == null || body.Physics.IsWelded)
+                    continue;
+                try
+                {
+                    world.LockCriticalOperations();
+                    foreach (var constraint in body.Physics.Constraints)
+                        if (MyPhysicsBody.IsConstraintValid(constraint))
+                            world.RemoveConstraint(constraint);
+                    DeactivateRigidBody(body, world, body.Physics.RigidBody);
+                    DeactivateRigidBody(body, world, body.Physics.RigidBody2);
+                }
+                finally
+                {
+                    world.UnlockCriticalOperations();
+                }
+            }
 
             foreach (var entity in Grids)
                 if (entity.Parent == null)
                     MyGamePruningStructure.Remove(entity);
+
+            void DeactivateRigidBody(MyCubeGrid grid, HkWorld world, HkRigidBody body)
+            {
+                if (world == null || body == null)
+                    return;
+                // stop it
+                body.LinearVelocity = Vector3.Zero;
+                body.AngularVelocity = Vector3.Zero;
+                // put it to sleep
+                body.Deactivate();
+                // make it static
+                if (body.GetMotionType() != HkMotionType.Fixed)
+                    body.UpdateMotionType(HkMotionType.Fixed);
+                // Remove from collision
+                // Cache velocity?
+            }
 
             void UnregisterRecursive(IMyEntity e)
             {
@@ -163,33 +196,25 @@ namespace Concealment
                     MyGamePruningStructure.Add(entity);
 
 
-            var weldGroups = new HashSet<MyGroups<MyEntity, MyWeldGroupData>.Group>();
             foreach (var body in Grids)
             {
-                if (body.Physics == null)
+                var world = body.Physics?.HavokWorld;
+                if (world == null || body.Physics.IsWelded)
                     continue;
-                var group = MyWeldingGroups.Static.GetGroup(body);
-                if (group == null)
-                    body.Physics.Activate();
-                else
-                    weldGroups.Add(group);
+                try
+                {
+                    world.LockCriticalOperations();
+                    ActivateRigidBody(body, world, body.Physics.RigidBody);
+                    ActivateRigidBody(body, world, body.Physics.RigidBody2);
+                    foreach (var constraint in body.Physics.Constraints)
+                        if (MyPhysicsBody.IsConstraintValid(constraint))
+                            world.AddConstraint(constraint);
+                }
+                finally
+                {
+                    world.UnlockCriticalOperations();
+                }
             }
-            foreach (var group in weldGroups)
-            {
-                var body = group.GroupData.Parent;
-                if (!(body.Physics is MyPhysicsBody bodyPhysics))
-                    continue;
-                bodyPhysics.Activate();
-
-                foreach (var child in group.Nodes)
-                    if (child.NodeData != body &&
-                        !child.NodeData.MarkedForClose &&
-                        child.NodeData.Physics is MyPhysicsBody physBody)
-                        bodyPhysics.Weld(physBody);
-
-                body.RaisePhysicsChanged();
-            }
-
 
             foreach (var entity in Grids)
                 if (entity.Parent == null)
@@ -203,6 +228,20 @@ namespace Concealment
 
                 foreach (var child in e.Hierarchy.Children)
                     RegisterRecursive(child.Container.Entity);
+            }
+
+            void ActivateRigidBody(MyCubeGrid grid, HkWorld world, HkRigidBody body)
+            {
+                if (body == null)
+                    return;
+
+                // make it dynamic
+                if (body.GetMotionType() != HkMotionType.Dynamic && !grid.IsStatic)
+                    body.UpdateMotionType(HkMotionType.Dynamic);
+
+                // wake it up
+                body.Activate();
+                // restore velocity?
             }
         }
 
