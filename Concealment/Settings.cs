@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 using Torch;
+using Torch.Collections;
 
 namespace Concealment
 {
@@ -17,7 +18,7 @@ namespace Concealment
         private bool _concealProduction;
         private bool _concealPirates;
 
-        public ObservableList<string> ExcludedSubtypes { get; } = new ObservableList<string>();
+        public MtObservableList<string> ExcludedSubtypes { get; } = new MtObservableList<string>();
 
         public bool Enabled
         {

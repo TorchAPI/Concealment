@@ -18,6 +18,7 @@ using Sandbox.ModAPI;
 using Torch;
 using Torch.API;
 using Torch.API.Plugins;
+using Torch.Collections;
 using Torch.Managers;
 using VRage.Game;
 using VRage.Game.Components;
@@ -32,7 +33,7 @@ namespace Concealment
     public sealed class ConcealmentPlugin : TorchPluginBase, IWpfPlugin
     {
         public Persistent<Settings> Settings { get; private set; }
-        public ObservableList<ConcealGroup> ConcealedGroups { get; } = new ObservableList<ConcealGroup>();
+        public MtObservableList<ConcealGroup> ConcealedGroups { get; } = new MtObservableList<ConcealGroup>();
 
         private readonly Dictionary<long, Timer> _keepAliveTimers = new Dictionary<long, Timer>();
         private static readonly Logger Log = LogManager.GetLogger("Concealment");
