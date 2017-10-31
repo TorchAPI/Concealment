@@ -162,7 +162,7 @@ namespace Concealment
         public override void Dispose()
         {
             //RevealAll();
-            Settings.Save("Concealment.cfg");
+            Settings.Save(Path.Combine(StoragePath, "Concealment.cfg"));
         }
 
         public void GetConcealedGrids(List<IMyCubeGrid> grids)
