@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 using Torch;
@@ -18,7 +19,20 @@ namespace Concealment
         private bool _concealProduction;
         private bool _concealPirates;
 
+        [XmlIgnore]
         public MtObservableList<string> ExcludedSubtypes { get; } = new MtObservableList<string>();
+
+        [XmlElement(nameof(ExcludedSubtypes))]
+        public string[] ExcludedSubtypesSerial
+        {
+            get => ExcludedSubtypes.ToArray();
+            set
+            {
+                ExcludedSubtypes.Clear();
+                foreach (var k in value)
+                    ExcludedSubtypes.Add(k);
+            }
+        }
 
         public bool Enabled
         {

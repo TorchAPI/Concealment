@@ -58,7 +58,16 @@ namespace Concealment
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
-            Settings = Persistent<Settings>.Load(Path.Combine(StoragePath, "Concealment.cfg"));
+            try
+            {
+                Settings = Persistent<Settings>.Load(Path.Combine(StoragePath, "Concealment.cfg"));
+            }
+            catch (Exception e)
+            {
+                Log.Warn(e);
+            }
+            if (Settings?.Data == null)
+                Settings = new Persistent<Settings>(Path.Combine(StoragePath, "Concealment.cfg"), new Settings());
             Settings.Data.PropertyChanged += Data_PropertyChanged;
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
             RegisterEntityStorage("Concealment", Id);
