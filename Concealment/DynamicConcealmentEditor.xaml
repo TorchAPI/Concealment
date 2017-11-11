@@ -9,14 +9,24 @@
     <Window.DataContext>
         <concealment:ConcealmentPlugin />
     </Window.DataContext>
-    <DockPanel LastChildFill="true">
-        <StackPanel Margin="3" Orientation="Horizontal" DockPanel.Dock="Bottom">
-            <Button Margin="3" Name="AddButton" Content="Add" Click="ButtonBase_OnClick"/>
-            <Button Margin="3" Name="RemoveButton" Content="Remove"  Click="ButtonBase_OnClick" />
-            <Button Margin="3" Name="OkayButton" Content="Ok"  Click="ButtonBase_OnClick"/>
+    <Grid DataContext="{Binding Settings.Data}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding DynamicConcealQueryInterval}"  ToolTip="How often the system refreshes the nearby entity list"/>
+                    <Label Content="Dynamic Query Interval (seconds)" Margin="3"   ToolTip="How often the system refreshes the nearby entity list" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding DynamicConcealScanInterval}" ToolTip="How often the system checks if the item should be revealed or concealed" />
+                    <Label Content="Dynamic Scan Interval (seconds)" Margin="3" ToolTip="How often the system checks if the item should be revealed or concealed"/>
+                </StackPanel>
         </StackPanel>
-        <ScrollViewer Margin="3">
-            <ListView Name="List" ItemsSource="{Binding Path=Settings.Data.DynamicConcealment}">
+        <ScrollViewer Grid.Row="1" Margin="3">
+            <ListView Name="List" ItemsSource="{Binding Path=DynamicConcealment}">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Type ID" Width="150">
@@ -57,5 +67,10 @@
                 </ListView.View>
             </ListView>
         </ScrollViewer>
-    </DockPanel>
+        <StackPanel Grid.Row="2" Margin="3" Orientation="Horizontal" DockPanel.Dock="Bottom">
+            <Button Margin="3" Name="AddButton" Content="Add" Click="ButtonBase_OnClick"/>
+            <Button Margin="3" Name="RemoveButton" Content="Remove"  Click="ButtonBase_OnClick" />
+            <Button Margin="3" Name="OkayButton" Content="Ok"  Click="ButtonBase_OnClick"/>
+        </StackPanel>
+    </Grid>
 </Window>

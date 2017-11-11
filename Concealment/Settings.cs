@@ -24,6 +24,9 @@ namespace Concealment
         private bool _concealProduction;
         private bool _concealPirates;
 
+        private double _dynamicConcealQueryInterval = 15;
+        private double _dynamicConcealScanInterval = 2;
+
         /// <summary>
         /// Type of concealment constraint
         /// </summary>
@@ -141,6 +144,18 @@ namespace Concealment
         [XmlIgnore]
         public MtObservableList<DynamicConcealSettings> DynamicConcealment { get; } =
             new MtObservableList<DynamicConcealSettings>();
+
+        public double DynamicConcealScanInterval
+        {
+            get => _dynamicConcealScanInterval;
+            set => SetValue(ref _dynamicConcealScanInterval, value);
+        }
+
+        public double DynamicConcealQueryInterval
+        {
+            get => _dynamicConcealQueryInterval;
+            set => SetValue(ref _dynamicConcealQueryInterval, value);
+        }
 
         [XmlElement(nameof(DynamicConcealment))]
         public DynamicConcealSettings[] DynamicConcealmentSerial

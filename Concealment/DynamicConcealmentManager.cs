@@ -37,20 +37,40 @@ namespace Concealment
     public class DynamicConcealmentManager : Manager
     {
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
-        private static readonly TimeSpan _rebalanceTiming = TimeSpan.FromSeconds(60);
-        private static readonly TimeSpan _rebuildNearbyList = TimeSpan.FromSeconds(15);
-        private static readonly TimeSpan _rebuildConcealState = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan _rebalanceTiming = TimeSpan.FromMinutes(5);
 
         [Dependency] private readonly PatchManager _patchManager;
 
         private PatchContext _ctx;
 
+        // Icky, but statics everywhere
+        private static readonly WeakReference<ConcealmentPlugin> _pluginRef = new WeakReference<ConcealmentPlugin>(null);
+
         private readonly ConcealmentPlugin _plugin;
         private readonly Timer _refreshCollection;
+
+        private static TimeSpan QueryInterval
+        {
+            get
+            {
+                _pluginRef.TryGetTarget(out ConcealmentPlugin plugin);
+                return TimeSpan.FromSeconds(plugin?.Settings?.Data?.DynamicConcealQueryInterval ?? 15);
+            }
+        }
+
+        private static TimeSpan ScanInterval
+        {
+            get
+            {
+                _pluginRef.TryGetTarget(out ConcealmentPlugin plugin);
+                return TimeSpan.FromSeconds(plugin?.Settings?.Data?.DynamicConcealScanInterval ?? 2);
+            }
+        }
 
         public DynamicConcealmentManager(ConcealmentPlugin plugin, ITorchBase torch) : base(torch)
         {
             _plugin = plugin;
+            _pluginRef.SetTarget(plugin);
             _refreshCollection = new Timer(RefreshFromCollection);
         }
 
@@ -209,7 +229,10 @@ namespace Concealment
                 try
                 {
                     list.Clear();
-                    MyGamePruningStructure.GetTopMostEntitiesInBox(ref aabb, list);
+                    MyGamePruningStructure.GetTopMostEntitiesInBox(ref aabb, list, MyEntityQueryType.Static);
+                    var dt = (DateTime.Now - LastNearbyUpdate).TotalSeconds;
+                    aabb = aabb.Inflate(Math.Min(dt * 30, NextQueryDistance));
+                    MyGamePruningStructure.GetTopMostEntitiesInBox(ref aabb, list, MyEntityQueryType.Dynamic);
                     using (Lock.WriteUsing())
                     {
                         foreach (var k in NearbyEntities)
@@ -265,7 +288,7 @@ namespace Concealment
 
                 // associate these queries per-grid
                 gridInfo.NextQueryDistance = Math.Max(gridInfo.NextQueryDistance, Config.MaxDistance);
-                if (gridInfo.LastNearbyUpdate + _rebuildNearbyList < DateTime.Now)
+                if (gridInfo.LastNearbyUpdate + QueryInterval < DateTime.Now)
                 {
                     gridInfo.ScheduleRefresh();
                 }
@@ -479,7 +502,7 @@ namespace Concealment
                     data.ConcealState = true;
                     data.ConfigVersion = _configVersion;
                     data.Config = QueryConfig(key.BlockDefinition.Id);
-                    data.LastConcealStateUpdate = DateTime.Now - _rebuildConcealState;
+                    data.LastConcealStateUpdate = new DateTime(0L);
                 }
             return data;
         }
@@ -493,6 +516,7 @@ namespace Concealment
                     data.ConfigVersion = _configVersion;
                     data.NextQueryDistance = 0;
                     data.NearbyEntities.Clear();
+                    data.LastNearbyUpdate = new DateTime(0L);
                 }
             return data;
         }
@@ -532,8 +556,8 @@ namespace Concealment
                 if (_lastGridRebalance + _rebalanceTiming > DateTime.Now)
                 {
                     _gridRecastBalancing.Clear();
-                    var rawRebuildInterval = _rebuildNearbyList.Ticks;
-                    var rawBalancedInterval = _rebuildNearbyList.Ticks / _gridRecastBalancing.Count;
+                    var rawRebuildInterval = QueryInterval.Ticks;
+                    var rawBalancedInterval = QueryInterval.Ticks / _gridRecastBalancing.Count;
                     var i = 0;
                     foreach (var id in _gridRecastBalancing)
                     {
@@ -568,7 +592,7 @@ namespace Concealment
             if (cfg?.Config == null || cfg.Config.Config.Count == 0)
                 return true;
 
-            if (cfg.LastConcealStateUpdate + _rebuildConcealState < DateTime.Now)
+            if (cfg.LastConcealStateUpdate + ScanInterval < DateTime.Now)
             {
                 cfg.ScheduleRefresh();
             }

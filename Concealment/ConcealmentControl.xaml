@@ -42,7 +42,7 @@
             </StackPanel>
             <Button Content="Edit Excluded Subtypes" Margin="3" Click="EditExclusion_OnClick"/>
             <Button Content="Edit Dynamic Concealment" Margin="3" Click="EditDynamicConcealment_OnClick"/>
-            <Label Content="{Binding ConcealedGroups.Count, StringFormat=Concealed groups: {0}}"/>
+            <Label Content="{Binding ConcealedGroups.Count, StringFormat='Concealed groups: {0}'}"/>
             <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="RevealSelected_OnClick" />
         </StackPanel>
         <ListView Grid.Row="1" Name="Concealed" Margin="3" DockPanel.Dock="Bottom" ItemsSource="{Binding ConcealedGroups}">
