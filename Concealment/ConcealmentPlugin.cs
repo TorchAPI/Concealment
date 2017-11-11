@@ -17,9 +17,12 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch;
 using Torch.API;
+using Torch.API.Managers;
 using Torch.API.Plugins;
+using Torch.API.Session;
 using Torch.Collections;
 using Torch.Managers;
+using Torch.Session;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Definitions;
@@ -71,6 +74,12 @@ namespace Concealment
             Settings.Data.PropertyChanged += Data_PropertyChanged;
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
             RegisterEntityStorage("Concealment", Id);
+            torch.Managers.GetManager<ITorchSessionManager>()?.AddFactory(CreateManager);
+        }
+
+        private IManager CreateManager(ITorchSession session)
+        {
+            return new DynamicConcealmentManager(this, session.Torch);
         }
 
         private void Data_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -161,6 +170,7 @@ namespace Concealment
 
         public override void Dispose()
         {
+            Torch.Managers.GetManager<ITorchSessionManager>()?.RemoveFactory(CreateManager);
             //RevealAll();
             Settings.Save(Path.Combine(StoragePath, "Concealment.cfg"));
         }

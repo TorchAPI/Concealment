@@ -150,11 +150,19 @@
       <DependentUpon>ConcealmentControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConcealmentPlugin.cs" />
+    <Compile Include="DynamicConcealmentEditor.xaml.cs">
+      <DependentUpon>DynamicConcealmentEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DynamicConcealmentManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="ConcealmentControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DynamicConcealmentEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

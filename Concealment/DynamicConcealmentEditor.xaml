@@ -1,0 +1,61 @@
+﻿<Window x:Class="Concealment.DynamicConcealmentEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:concealment="clr-namespace:Concealment"
+        mc:Ignorable="d"
+        Title="Edit Dynamic Concealment" Height="300" Width="600">
+    <Window.DataContext>
+        <concealment:ConcealmentPlugin />
+    </Window.DataContext>
+    <DockPanel LastChildFill="true">
+        <StackPanel Margin="3" Orientation="Horizontal" DockPanel.Dock="Bottom">
+            <Button Margin="3" Name="AddButton" Content="Add" Click="ButtonBase_OnClick"/>
+            <Button Margin="3" Name="RemoveButton" Content="Remove"  Click="ButtonBase_OnClick" />
+            <Button Margin="3" Name="OkayButton" Content="Ok"  Click="ButtonBase_OnClick"/>
+        </StackPanel>
+        <ScrollViewer Margin="3">
+            <ListView Name="List" ItemsSource="{Binding Path=Settings.Data.DynamicConcealment}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Type ID" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ToolTip="TypeID" Text="{Binding TargetTypeIdString, Mode=TwoWay}"
+                                              IsEditable="true"
+                                              ItemsSource="{Binding TargetTypeIdOptions}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Subtype ID" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ToolTip="SubtypeID" Text="{Binding TargetSubtypeId, Mode=TwoWay}"
+                                              IsEditable="true"
+                                              ItemsSource="{Binding TargetSubtypeIdOptions}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Concealment Type" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ToolTip="Dynamic concealment type"
+                                              SelectedValue="{Binding DynamicConcealType, Mode=TwoWay}"
+                                              ItemsSource="{Binding DynamicConcealTypeOptions, Mode=OneTime}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Distance" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox ToolTip="Conceal Distance" Text="{Binding Distance, Mode=TwoWay}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

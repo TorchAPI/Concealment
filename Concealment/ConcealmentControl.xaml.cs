@@ -19,7 +19,7 @@ namespace Concealment
             InitializeComponent();
         }
 
-        public ConcealmentPlugin Plugin => (ConcealmentPlugin)DataContext;
+        public ConcealmentPlugin Plugin => (ConcealmentPlugin) DataContext;
 
         private void RevealSelected_OnClick(object sender, RoutedEventArgs e)
         {
@@ -52,6 +52,17 @@ namespace Concealment
         {
             var editor = new CollectionEditor() {Owner = Window.GetWindow(this)};
             editor.Edit(Plugin.Settings.Data.ExcludedSubtypes, "Excluded Subtypes");
+        }
+
+        private void EditDynamicConcealment_OnClick(object sender, RoutedEventArgs e)
+        {
+            var editor = new DynamicConcealmentEditor
+            {
+                Owner = Window.GetWindow(this),
+                DataContext = DataContext,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            editor.ShowDialog();
         }
     }
 }

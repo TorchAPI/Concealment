@@ -41,6 +41,7 @@
                 <Button Content="Manual Reveal" Margin="3" Click="Reveal_OnClick" />
             </StackPanel>
             <Button Content="Edit Excluded Subtypes" Margin="3" Click="EditExclusion_OnClick"/>
+            <Button Content="Edit Dynamic Concealment" Margin="3" Click="EditDynamicConcealment_OnClick"/>
             <Label Content="{Binding ConcealedGroups.Count, StringFormat=Concealed groups: {0}}"/>
             <Button Content="Reveal Selected" Margin="3" DockPanel.Dock="Bottom" Click="RevealSelected_OnClick" />
         </StackPanel>
