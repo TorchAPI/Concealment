@@ -11,6 +11,7 @@ using Sandbox.Game.World;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Utils;
 using VRage.Game.Entity;
+using VRage.Game.Entity.EntityComponents.Interfaces;
 using VRage.Groups;
 using VRage.ModAPI;
 using VRageMath;
@@ -178,6 +179,7 @@ namespace Concealment
             void UnregisterRecursive(IMyEntity e)
             {
                 MyEntities.UnregisterForUpdate((MyEntity)e);
+                (e.GameLogic as IMyGameLogicComponent)?.UnregisterForUpdate();
                 if (e.Hierarchy == null)
                     return;
 
@@ -223,6 +225,7 @@ namespace Concealment
             void RegisterRecursive(IMyEntity e)
             {
                 MyEntities.RegisterForUpdate((MyEntity)e);
+                (e.GameLogic as IMyGameLogicComponent)?.RegisterForUpdate();
                 if (e.Hierarchy == null)
                     return;
 
