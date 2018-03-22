@@ -51,7 +51,7 @@ namespace Concealment
         private void EditExclusion_OnClick(object sender, RoutedEventArgs e)
         {
             var editor = new CollectionEditor() {Owner = Window.GetWindow(this)};
-            editor.Edit(Plugin.Settings.Data.ExcludedSubtypes, "Excluded Subtypes");
+            editor.Edit<string>(Plugin.Settings.Data.ExcludedSubtypes, "Excluded Subtypes");
         }
 
         private void EditDynamicConcealment_OnClick(object sender, RoutedEventArgs e)

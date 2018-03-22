@@ -9,7 +9,6 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using SpaceEngineers.Game.Entities.Blocks;
-using Torch.Utils;
 using VRage.Game.Entity;
 using VRage.Game.Entity.EntityComponents.Interfaces;
 using VRage.Groups;
