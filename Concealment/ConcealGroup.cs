@@ -73,7 +73,10 @@ namespace Concealment
         {
             LogManager.GetLogger(nameof(ConcealGroup)).Info($"Grid group '{GridNames}' was marked for close.");
             UnhookOnClosing();
-            Closing?.Invoke(this);
+            if (Torch.GameState != TorchGameState.Unloading)
+            {
+                Closing?.Invoke(this);
+            }
         }
 
         public void UpdateAABB()
