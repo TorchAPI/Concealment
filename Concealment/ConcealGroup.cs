@@ -9,6 +9,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using SpaceEngineers.Game.Entities.Blocks;
+using Torch.API;
 using VRage.Game.Entity;
 using VRage.Game.Entity.EntityComponents.Interfaces;
 using VRage.Groups;
@@ -63,7 +64,7 @@ namespace Concealment
                 grid.OnMarkForClose += Grid_OnMarkForClose;
         }
 
-        private void UnhookOnClosing()
+        internal void UnhookOnClosing()
         {
             foreach (var grid in Grids)
                 grid.OnMarkForClose -= Grid_OnMarkForClose;
@@ -73,10 +74,7 @@ namespace Concealment
         {
             LogManager.GetLogger(nameof(ConcealGroup)).Info($"Grid group '{GridNames}' was marked for close.");
             UnhookOnClosing();
-            if (Torch.GameState != TorchGameState.Unloading)
-            {
-                Closing?.Invoke(this);
-            }
+            Closing?.Invoke(this);
         }
 
         public void UpdateAABB()
