@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -75,6 +75,18 @@ namespace Concealment
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
             RegisterEntityStorage("Concealment", Id);
             torch.Managers.GetManager<ITorchSessionManager>()?.AddFactory(CreateManager);
+            torch.GameStateChanged += Torch_GameStateChanged;
+        }
+
+        private void Torch_GameStateChanged(Sandbox.MySandboxGame game, TorchGameState newState)
+        {
+            if (newState == TorchGameState.Unloading)
+            {
+                foreach(var group in ConcealedGroups)
+                {
+                    group.UnhookOnClosing();
+                }
+            }
         }
 
         private IManager CreateManager(ITorchSession session)
