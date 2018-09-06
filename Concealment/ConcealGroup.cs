@@ -135,9 +135,9 @@ namespace Concealment
                 if (body.Parent == null)
                     UnregisterRecursive(body);
 
-            foreach (var entity in Grids)
-                if (entity.Parent == null)
-                    MyGamePruningStructure.Remove(entity);
+            //foreach (var entity in Grids)
+            //    if (entity.Parent == null)
+            //        MyGamePruningStructure.Remove(entity);
 
             void UnregisterRecursive(IMyEntity e)
             {
@@ -156,9 +156,9 @@ namespace Concealment
         /// </summary>
         public void Reveal()
         {
-            foreach (var entity in Grids)
-                if (entity.Parent == null)
-                    MyGamePruningStructure.Add(entity);
+        //    foreach (var entity in Grids)
+        //        if (entity.Parent == null)
+        //            MyGamePruningStructure.Add(entity);
 
             foreach (var entity in Grids)
                 if (entity.Parent == null)
