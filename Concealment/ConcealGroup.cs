@@ -23,11 +23,12 @@ namespace Concealment
         /// Entity ID of the first grid in the group.
         /// </summary>
         public long Id { get; }
-        public bool IsConcealed { get; set; }
+        public bool IsConcealed { get; private set; }
         public BoundingBoxD WorldAABB { get; private set; }
         public List<MyCubeGrid> Grids { get; }
         public List<MyMedicalRoom> MedicalRooms { get; } = new List<MyMedicalRoom>();
         public List<MyCryoChamber> CryoChambers { get; } = new List<MyCryoChamber>();
+        private Dictionary<long, bool> _unstatic = new Dictionary<long, bool>();
         public event Action<ConcealGroup> Closing;
         internal volatile int ProxyId = -1;
 
@@ -131,9 +132,15 @@ namespace Concealment
         /// </summary>
         public void Conceal()
         {
-            foreach (var body in Grids)
-                if (body.Parent == null)
-                    UnregisterRecursive(body);
+            _unstatic.Clear();
+            foreach (var grid in Grids)
+            {
+                _unstatic[grid.EntityId] = !grid.IsStatic;
+                grid.ConvertToStatic();
+                
+                if (grid.Parent == null)
+                    UnregisterRecursive(grid);   
+            }
 
             //foreach (var entity in Grids)
             //    if (entity.Parent == null)
@@ -160,9 +167,14 @@ namespace Concealment
         //        if (entity.Parent == null)
         //            MyGamePruningStructure.Add(entity);
 
-            foreach (var entity in Grids)
-                if (entity.Parent == null)
-                    RegisterRecursive(entity);
+            foreach (var grid in Grids)
+            {
+                if (_unstatic[grid.EntityId])
+                    grid.OnConvertToDynamic();
+                
+                if (grid.Parent == null)
+                    RegisterRecursive(grid);   
+            }
 
             void RegisterRecursive(IMyEntity e)
             {

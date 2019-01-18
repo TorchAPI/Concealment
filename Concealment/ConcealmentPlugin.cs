@@ -236,7 +236,6 @@ namespace Concealment
             {
                 group.UpdatePostConceal();
                 Log.Debug($"Group {group.Id} cached");
-                group.IsConcealed = true;
                 Torch.Invoke(() => ConcealedGroups.Add(group));
             });
             return group.Grids.Count;
