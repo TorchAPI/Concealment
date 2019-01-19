@@ -28,7 +28,7 @@ namespace Concealment
         public List<MyCubeGrid> Grids { get; }
         public List<MyMedicalRoom> MedicalRooms { get; } = new List<MyMedicalRoom>();
         public List<MyCryoChamber> CryoChambers { get; } = new List<MyCryoChamber>();
-        private Dictionary<long, bool> _unstatic = new Dictionary<long, bool>();
+        //private Dictionary<long, bool> _unstatic = new Dictionary<long, bool>();
         public event Action<ConcealGroup> Closing;
         internal volatile int ProxyId = -1;
 
@@ -132,11 +132,12 @@ namespace Concealment
         /// </summary>
         public void Conceal()
         {
-            _unstatic.Clear();
+            //TODO: find good way to disable grid movement/physics
+            //_unstatic.Clear();
             foreach (var grid in Grids)
             {
-                _unstatic[grid.EntityId] = !grid.IsStatic;
-                grid.ConvertToStatic();
+                //_unstatic[grid.EntityId] = !grid.IsStatic;
+                //grid.ConvertToStatic();
                 
                 if (grid.Parent == null)
                     UnregisterRecursive(grid);   
@@ -169,8 +170,8 @@ namespace Concealment
 
             foreach (var grid in Grids)
             {
-                if (_unstatic[grid.EntityId])
-                    grid.OnConvertToDynamic();
+                //if (_unstatic[grid.EntityId])
+                //    grid.OnConvertToDynamic();
                 
                 if (grid.Parent == null)
                     RegisterRecursive(grid);   
