@@ -151,6 +151,7 @@ namespace Concealment
             {
                 MyEntities.UnregisterForUpdate((MyEntity)e);
                 (e.GameLogic as IMyGameLogicComponent)?.UnregisterForUpdate();
+                e.Flags |= (EntityFlags)4;
                 if (e.Hierarchy == null)
                     return;
 
@@ -181,6 +182,7 @@ namespace Concealment
             {
                 MyEntities.RegisterForUpdate((MyEntity)e);
                 (e.GameLogic as IMyGameLogicComponent)?.RegisterForUpdate();
+                e.Flags &= ~(EntityFlags)4;
                 if (e.Hierarchy == null)
                     return;
 
