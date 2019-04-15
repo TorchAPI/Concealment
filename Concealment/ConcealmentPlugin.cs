@@ -73,7 +73,6 @@ namespace Concealment
                 Settings = new Persistent<Settings>(Path.Combine(StoragePath, "Concealment.cfg"), new Settings());
             Settings.Data.PropertyChanged += Data_PropertyChanged;
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
-            RegisterEntityStorage("Concealment", Id);
             torch.Managers.GetManager<ITorchSessionManager>()?.AddFactory(CreateManager);
         }
 
@@ -85,18 +84,6 @@ namespace Concealment
         private void Data_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             _settingsChanged = true;
-        }
-
-        //TODO: make this stop spamming the log with warnings
-        private void RegisterEntityStorage(string name, Guid id)
-        {
-            return;
-            var comp = new MyModStorageComponentDefinition
-            {
-                Id = new MyDefinitionId(typeof(MyObjectBuilder_ModStorageComponent), name),
-                RegisteredStorageGuids = new[] { id }
-            };
-            MyDefinitionManager.Static.Definitions.AddDefinition(comp);
         }
 
         //TODO: divide conceal/reveal runs over several ticks to avoid stuttering.
@@ -345,9 +332,9 @@ namespace Concealment
             Log.Debug($"Concealed grids in {sw.ElapsedMilliseconds}ms.");
             sw.Stop();
 
-
-            if (concealed != 0)
-                Log.Info($"Concealed {concealed} grids distant from players.");
+            var concealedCount = ConcealedGroups.SelectMany(x => x.Grids).Count();
+            var totalCount = MyEntities.GetEntities().Count(x => x is MyCubeGrid);
+            Log.Info($"Status: {concealedCount}/{totalCount} grids concealed ({concealedCount/(float)totalCount:P}).");
 
             return concealed;
         }
@@ -359,13 +346,13 @@ namespace Concealment
             {
                 if (_keepAliveTimers.ContainsKey(grid.EntityId))
                 {
-                    Log.Trace($"{group.GridNames} is kept alive by PB action");
+                    Log.Debug($"{group.GridNames} is kept alive by PB action");
                     return true;
                 }
 
                 if (!Settings.Data.ConcealPirates && grid.BigOwners.Contains(pirateId))
                 {
-                    Log.Trace($"{group.GridNames} is kept alive by pirate ownership");
+                    Log.Debug($"{group.GridNames} is kept alive by pirate ownership");
                     return true;
                 }
             }
@@ -380,14 +367,14 @@ namespace Concealment
 
                     if (block is IMyProductionBlock p && !Settings.Data.ConcealProduction && p.IsProducing)
                     {
-                        Log.Trace($"{group.GridNames} exempted production ({p.CustomName} active)");
+                        Log.Debug($"{group.GridNames} exempted production ({p.CustomName} active)");
                         exclude = true;
                         break;
                     }
 
                     if (Settings.Data.ExcludedSubtypes.Contains(block.BlockDefinition.Id.SubtypeName))
                     {
-                        Log.Trace($"{group.GridNames} exempted subtype {block.BlockDefinition.Id.SubtypeName}");
+                        Log.Debug($"{group.GridNames} exempted subtype {block.BlockDefinition.Id.SubtypeName}");
                         exclude = true;
                         break;
                     }

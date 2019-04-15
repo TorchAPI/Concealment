@@ -9,6 +9,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using SpaceEngineers.Game.Entities.Blocks;
+using VRage.Audio;
 using VRage.Game.Entity;
 using VRage.Game.Entity.EntityComponents.Interfaces;
 using VRage.Groups;
@@ -19,6 +20,7 @@ namespace Concealment
 {
     public class ConcealGroup
     {
+        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
         /// <summary>
         /// Entity ID of the first grid in the group.
         /// </summary>
@@ -70,9 +72,10 @@ namespace Concealment
                 grid.OnMarkForClose -= Grid_OnMarkForClose;
         }
 
-        private void Grid_OnMarkForClose(VRage.Game.Entity.MyEntity obj)
+        private void Grid_OnMarkForClose(MyEntity obj)
         {
-            LogManager.GetLogger(nameof(ConcealGroup)).Info($"Grid group '{GridNames}' was marked for close.");
+            _log.Debug($"Grid group '{GridNames}' was marked for close.");
+            EnableProjectors();
             UnhookOnClosing();
             Closing?.Invoke(this);
         }
@@ -127,36 +130,54 @@ namespace Concealment
             return false;
         }
 
+        private readonly HashSet<long> _projectors = new HashSet<long>();
+        private void DisableProjectors(MyCubeGrid grid)
+        {
+            foreach (var projector in grid.GetFatBlocks<MyProjectorBase>())
+            {
+                if (projector.ProjectedGrid == null)
+                    continue;
+
+                projector.Enabled = false;
+                _projectors.Add(projector.EntityId);
+            }
+        }
+
+        public void EnableProjectors()
+        {
+            foreach (var projector in _projectors.Select(x => (MyProjectorBase)MyEntities.GetEntityById(x)))
+            {
+                projector.Enabled = true;
+            }
+            _projectors.Clear();
+        }
+
         /// <summary>
         /// Conceals this group from game and physics logic.
         /// </summary>
         public void Conceal()
         {
-            //TODO: find good way to disable grid movement/physics
-            //_unstatic.Clear();
             foreach (var grid in Grids)
             {
-                //_unstatic[grid.EntityId] = !grid.IsStatic;
-                //grid.ConvertToStatic();
+                DisableProjectors(grid);
                 
                 if (grid.Parent == null)
                     UnregisterRecursive(grid);   
             }
 
-            //foreach (var entity in Grids)
-            //    if (entity.Parent == null)
-            //        MyGamePruningStructure.Remove(entity);
-
-            void UnregisterRecursive(IMyEntity e)
+            void UnregisterRecursive(MyEntity e)
             {
-                MyEntities.UnregisterForUpdate((MyEntity)e);
+                if (e.IsPreview)
+                    return;
+                
+                MyEntities.UnregisterForUpdate(e);
                 (e.GameLogic as IMyGameLogicComponent)?.UnregisterForUpdate();
                 e.Flags |= (EntityFlags)4;
                 if (e.Hierarchy == null)
                     return;
 
                 foreach (var child in e.Hierarchy.Children)
-                    UnregisterRecursive(child.Container.Entity);
+                    UnregisterRecursive((MyEntity)child.Container.Entity);
             }
         }
 
@@ -165,32 +186,29 @@ namespace Concealment
         /// </summary>
         public void Reveal()
         {
-        //    foreach (var entity in Grids)
-        //        if (entity.Parent == null)
-        //            MyGamePruningStructure.Add(entity);
-
             foreach (var grid in Grids)
             {
-                //if (_unstatic[grid.EntityId])
-                //    grid.OnConvertToDynamic();
-                
                 if (grid.Parent == null)
                     RegisterRecursive(grid);   
             }
+            
+            EnableProjectors();
 
-            void RegisterRecursive(IMyEntity e)
+            void RegisterRecursive(MyEntity e)
             {
-                MyEntities.RegisterForUpdate((MyEntity)e);
+                if (e.IsPreview)
+                    return;
+                
+                MyEntities.RegisterForUpdate(e);
                 (e.GameLogic as IMyGameLogicComponent)?.RegisterForUpdate();
                 e.Flags &= ~(EntityFlags)4;
                 if (e.Hierarchy == null)
                     return;
 
                 foreach (var child in e.Hierarchy.Children)
-                    RegisterRecursive(child.Container.Entity);
+                    RegisterRecursive((MyEntity)child.Container.Entity);
             }
         }
-
     }
 
 }
