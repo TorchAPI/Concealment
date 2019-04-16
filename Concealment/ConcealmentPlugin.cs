@@ -334,7 +334,9 @@ namespace Concealment
 
             var concealedCount = ConcealedGroups.SelectMany(x => x.Grids).Count();
             var totalCount = MyEntities.GetEntities().Count(x => x is MyCubeGrid);
-            Log.Info($"Status: {concealedCount}/{totalCount} grids concealed ({concealedCount/(float)totalCount:P}).");
+            
+            if (concealed > 0)
+                Log.Info($"{concealedCount}/{totalCount} grids are concealed ({concealedCount/(float)totalCount:P}).");
 
             return concealed;
         }
