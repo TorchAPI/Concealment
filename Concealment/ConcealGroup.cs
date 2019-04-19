@@ -145,8 +145,11 @@ namespace Concealment
 
         public void EnableProjectors()
         {
-            foreach (var projector in _projectors.Select(x => (MyProjectorBase)MyEntities.GetEntityById(x)))
+            foreach (var projector in _projectors.Select(x => MyEntities.GetEntityById(x) as MyProjectorBase))
             {
+                if (projector == null)
+                    continue;
+                
                 projector.Enabled = true;
             }
             _projectors.Clear();
