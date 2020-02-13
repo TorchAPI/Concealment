@@ -29,6 +29,7 @@ using VRage.Game.Definitions;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.ComponentSystem;
 using VRage.ModAPI;
+using VRage.Network;
 using VRageMath;
 
 namespace Concealment
@@ -49,6 +50,10 @@ namespace Concealment
         private MyDynamicAABBTreeD _concealedAabbTree;
         private bool _settingsChanged;
         private bool _ready;
+
+        private MyReplicationServer Replication => (MyReplicationServer)MyMultiplayer.Static.ReplicationLayer;
+
+        public static ConcealmentPlugin Instance { get; private set; }
 
         public ConcealmentPlugin()
         {
@@ -76,6 +81,8 @@ namespace Concealment
             Settings.Data.PropertyChanged += Data_PropertyChanged;
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
             torch.Managers.GetManager<ITorchSessionManager>()?.AddFactory(CreateManager);
+
+            Instance = this;
         }
 
         private IManager CreateManager(ITorchSession session)
@@ -97,9 +104,7 @@ namespace Concealment
             if (_ready)
             {
                 if (_counter % (ulong)Settings.Data.ConcealInterval == 0)
-                    ConcealGrids(Settings.Data.ConcealDistance);
-                if (_counter % (ulong)Settings.Data.RevealInterval == 0)
-                    RevealGrids(Settings.Data.RevealDistance);
+                    ConcealGrids();
                 _counter += 1;
             }
 
@@ -239,8 +244,8 @@ namespace Concealment
         {
             if (!group.IsConcealed)
             {
-                Log.Warn($"Attempted to reveal a group that wasn't concealed: {group.GridNames}");
-                Log.Warn(new StackTrace());
+                //Log.Warn($"Attempted to reveal a group that wasn't concealed: {group.GridNames}");
+                //Log.Warn(new StackTrace());
                 return 0;
             }
 
@@ -268,57 +273,57 @@ namespace Concealment
             return revealed;
         }
 
-        public int RevealGrids(double distanceFromPlayers)
-        {
-            var revealed = 0;
-            var playerSpheres = GetPlayerViewSpheres(distanceFromPlayers);
-            foreach (var sphere in playerSpheres)
-            {
-                Log.Trace($"{sphere.Center}: {sphere.Radius}");
-                revealed += RevealGridsInSphere(sphere);
-            }
+        //public int RevealGrids()
+        //{
+        //    var revealed = 0;
 
-            if (_settingsChanged)
-            {
-                for (var i = ConcealedGroups.Count - 1; i >= 0; i--)
-                {
-                    if (IsExcluded(ConcealedGroups[i]))
-                        revealed += RevealGroup(ConcealedGroups[i]);
-                }
+        //    foreach (var sphere in playerSpheres)
+        //    {
+        //        Log.Trace($"{sphere.Center}: {sphere.Radius}");
+        //        revealed += RevealGridsInSphere(sphere);
+        //    }
 
-                _settingsChanged = false;
-            }
+        //    if (_settingsChanged)
+        //    {
+        //        for (var i = ConcealedGroups.Count - 1; i >= 0; i--)
+        //        {
+        //            if (IsExcluded(ConcealedGroups[i]))
+        //                revealed += RevealGroup(ConcealedGroups[i]);
+        //        }
 
-            if (revealed != 0)
-                Log.Info($"Revealed {revealed} grids near players.");
-            return revealed;
-        }
+        //        _settingsChanged = false;
+        //    }
 
-        public int ConcealGrids(double distanceFromPlayers = 0)
+        //    if (revealed != 0)
+        //        Log.Info($"Revealed {revealed} grids near players.");
+        //    return revealed;
+        //}
+
+        public (int ,int) ConcealGrids()
         {
             Log.Debug("Concealing grids");
             int concealed = 0;
-            var playerSpheres = GetPlayerViewSpheres(distanceFromPlayers);
+            int revealed = 0;
 
             ConcurrentBag<ConcealGroup> groups = new ConcurrentBag<ConcealGroup>();
+            ConcurrentBag<ConcealGroup> reveal = new ConcurrentBag<ConcealGroup>();
             var sw = Stopwatch.StartNew();
             Parallel.ForEach(MyCubeGridGroups.Static.Physical.Groups, group =>
             {
                 var concealGroup = new ConcealGroup(group);
 
-                if (distanceFromPlayers != 0)
-                {
-                    var volume = group.GetWorldAABB();
-                    if (playerSpheres.Any(s => s.Contains(volume) != ContainmentType.Disjoint))
-                    {
-                        Log.Trace("group near player");
-                        return;
-                    }
-                }
-
                 if (IsExcluded(concealGroup))
                 {
                     Log.Trace("group excluded");
+                    reveal.Add(concealGroup);
+                    return;
+                }
+
+                //Checks if any connected clients have requested any grid in this group for replication
+                if (concealGroup.Grids.Any(g => Replication.IsReplicated(Utilities.GetReplicable(g))))
+                {
+                    Log.Trace("group in replication");
+                    reveal.Add(concealGroup);
                     return;
                 }
 
@@ -332,6 +337,14 @@ namespace Concealment
                 concealed += ConcealGroup(group);
             }
             Log.Debug($"Concealed grids in {sw.ElapsedMilliseconds}ms.");
+            sw.Restart();
+
+            foreach (var group in reveal)
+            {
+                revealed += RevealGroup(group);
+            }
+
+            Log.Debug($"Revealed grids in {sw.ElapsedMilliseconds}ms");
             sw.Stop();
 
             var concealedCount = ConcealedGroups.SelectMany(x => x.Grids).Count();
@@ -340,7 +353,10 @@ namespace Concealment
             if (concealed > 0)
                 Log.Info($"{concealedCount+concealed}/{totalCount} grids are concealed ({concealedCount+concealed/(float)totalCount:P}), {concealed} new.");
 
-            return concealed;
+            if(revealed > 0)
+                Log.Info($"Revealed {revealed} grids replicated to players.");
+
+            return (concealed, revealed);
         }
 
         public bool IsExcluded(ConcealGroup group)

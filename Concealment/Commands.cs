@@ -9,32 +9,13 @@ namespace Concealment
     {
         public ConcealmentPlugin Plugin => (ConcealmentPlugin)Context.Plugin;
 
-        [Command("conceal", "Conceal grids x distance from players."), Permission(MyPromoteLevel.SpaceMaster)]
-        public void Conceal(double distance = 0)
+        [Command("update", "Forces a concealment update immediately."), Permission(MyPromoteLevel.SpaceMaster)]
+        public void Conceal()
         {
-            if (distance == 0)
-            {
-                distance = Plugin.Settings.Data.ConcealDistance;
-            }
-            var num = Plugin.ConcealGrids(distance);
-            Context.Respond($"{num} grids concealed.");
+            var num = Plugin.ConcealGrids();
+            Context.Respond($"{num.Item1} grids concealed, {num.Item2} grids revealed");
         }
-
-        [Command("reveal", "Reveal all grids within the given distance"), Permission(MyPromoteLevel.SpaceMaster)]
-        public void Reveal(double distance = 1000)
-        {
-            var pos = Context.Player?.Controller.ControlledEntity?.Entity.GetPosition();
-            if (!pos.HasValue)
-            {
-                Context.Respond("You must be controlling an entity.");
-                return;
-            }
-
-            var sphere = new BoundingSphereD(pos.Value, distance);
-            var num = Plugin.RevealGridsInSphere(sphere);
-            Context.Respond($"{num} grids revealed.");
-        }
-
+        
         [Command("reveal all", "Reveal all grids"), Permission(MyPromoteLevel.SpaceMaster)]
         public void RevealAll()
         {
@@ -46,7 +27,7 @@ namespace Concealment
         public void Enable()
         {
             Plugin.Settings.Data.Enabled = true;
-            Plugin.ConcealGrids(Plugin.Settings.Data.ConcealDistance);
+            Plugin.ConcealGrids();
         }
 
         [Command("conceal off", "Disable concealment.")]
