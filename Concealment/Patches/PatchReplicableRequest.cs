@@ -29,7 +29,8 @@ namespace Concealment.Patches
 
         public static void Patch(PatchContext ctx)
         {
-            ctx.GetPattern(_requestMethod).Prefixes.Add(typeof(PatchReplicableRequest).GetMethod(nameof(PrefixRequest)));
+            //temporarily disabled because BitStream.ResetRead is throwing dumbass exceptions
+            //ctx.GetPattern(_requestMethod).Prefixes.Add(typeof(PatchReplicableRequest).GetMethod(nameof(PrefixRequest)));
         }
 
         public static void PrefixRequest(MyPacket packet)
