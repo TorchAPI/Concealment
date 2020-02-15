@@ -244,6 +244,7 @@ namespace Concealment
         {
             if (!group.IsConcealed)
             {
+                Log.Trace($"Group for reveal is not concealed: {group.GridNames}");
                 //Log.Warn($"Attempted to reveal a group that wasn't concealed: {group.GridNames}");
                 //Log.Warn(new StackTrace());
                 return 0;
@@ -315,7 +316,6 @@ namespace Concealment
                 if (IsExcluded(concealGroup))
                 {
                     Log.Trace("group excluded");
-                    reveal.Add(concealGroup);
                     return;
                 }
 
@@ -323,13 +323,29 @@ namespace Concealment
                 if (concealGroup.Grids.Any(g => Replication.IsReplicated(Utilities.GetReplicable(g))))
                 {
                     Log.Trace("group in replication");
-                    reveal.Add(concealGroup);
                     return;
                 }
 
                 groups.Add(concealGroup);
             });
-            Log.Debug($"Scanned grids in {sw.ElapsedMilliseconds}ms.");
+            Log.Debug($"Scanned conceal grids in {sw.ElapsedMilliseconds}ms.");
+            sw.Restart();
+
+            Parallel.ForEach(ConcealedGroups, group =>
+              {
+                  if (IsExcluded(group))
+                  {
+                      reveal.Add(group);
+                      return;
+                  }
+
+                  if (group.Grids.Any(grid => Replication.IsReplicated(Utilities.GetReplicable(grid))))
+                  {
+                      reveal.Add(group);
+                      return;
+                  }
+              });
+            Log.Debug($"Scanned reveal grids in {sw.ElapsedMilliseconds}ms");
             sw.Restart();
 
             foreach (var group in groups)
