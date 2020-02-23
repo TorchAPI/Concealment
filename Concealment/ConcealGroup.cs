@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Media.Animation;
 using Havok;
 using NLog;
 using Sandbox.Engine.Physics;
@@ -34,25 +33,6 @@ namespace Concealment
         //private Dictionary<long, bool> _unstatic = new Dictionary<long, bool>();
         public event Action<ConcealGroup> Closing;
         internal volatile int ProxyId = -1;
-
-        public override int GetHashCode()
-        {
-            int hash = 17;
-            foreach (var grid in Grids)
-                hash = hash * 23 + grid.EntityId.GetHashCode();
-            return hash;
-        }
-
-        public override bool Equals(object obj)
-        {
-            var a = this;
-            var b = obj as ConcealGroup;
-
-            if (b == null)
-                return false;
-
-            return a.GridNames.Equals(b.GridNames);
-        }
 
         public ConcealGroup(MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group group)
         {

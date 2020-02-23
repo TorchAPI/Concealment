@@ -613,7 +613,7 @@ namespace Concealment
             if (playerFaction1 == playerFaction2)
                 return MyRelationsBetweenPlayerAndBlock.FactionShare;
             return MySession.Static.Factions.GetRelationBetweenFactions(playerFaction1.FactionId,
-                       playerFaction2.FactionId).Item1 == MyRelationsBetweenFactions.Neutral
+                       playerFaction2.FactionId) == MyRelationsBetweenFactions.Neutral
                 ? MyRelationsBetweenPlayerAndBlock.Neutral
                 : MyRelationsBetweenPlayerAndBlock.Enemies;
         }

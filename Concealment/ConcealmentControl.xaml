@@ -19,14 +19,26 @@
                 <CheckBox Content="Enable Concealment" Margin="3" IsChecked="{Binding Enabled}" />
                 <CheckBox Content="Conceal Production" ToolTip="Conceal grids with active production blocks." Margin="3" IsChecked="{Binding ConcealProduction}" />
                 <CheckBox Content="Conceal Pirates" ToolTip="Conceal grids owned by Space Pirates." Margin="3" IsChecked="{Binding ConcealPirates}" />
-                
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding ConcealDistance}" />
+                    <Label Content="Conceal Distance (meters)" Margin="3" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding RevealDistance}" />
+                    <Label Content="Reveal Distance (meters)" Margin="3" />
+                </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBox Margin="3" Width="150" Text="{Binding ConcealInterval}" />
                     <Label Content="Conceal Interval (ticks, 1/60 s)" Margin="3" />
                 </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Margin="3" Width="150" Text="{Binding RevealInterval}" />
+                    <Label Content="Reveal Interval (ticks, 1/60 s)" Margin="3" />
+                </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Button Content="Force Update" Margin="3" Click="Conceal_OnClick" />
+                <Button Content="Manual Conceal" Margin="3" Click="Conceal_OnClick" />
+                <Button Content="Manual Reveal" Margin="3" Click="Reveal_OnClick" />
             </StackPanel>
             <Button Content="Edit Excluded Subtypes" Margin="3" Click="EditExclusion_OnClick"/>
             <Button Content="Edit Dynamic Concealment" Margin="3" Click="EditDynamicConcealment_OnClick"/>

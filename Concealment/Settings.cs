@@ -203,6 +203,36 @@ namespace Concealment
             }
         }
 
+        public int RevealInterval
+        {
+            get => _revealInterval;
+            set
+            {
+                _revealInterval = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double ConcealDistance
+        {
+            get => _concealDistance;
+            set
+            {
+                _concealDistance = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double RevealDistance
+        {
+            get => _revealDistance;
+            set
+            {
+                _revealDistance = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool ConcealProduction
         {
             get => _concealProduction;

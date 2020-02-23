@@ -36,10 +36,16 @@ namespace Concealment
             });
         }
 
+        private void Reveal_OnClick(object sender, RoutedEventArgs e)
+        {
+            var p = Plugin;
+            Plugin.Torch.Invoke(delegate { p.RevealGrids(p.Settings.Data.RevealDistance); });
+        }
+
         private void Conceal_OnClick(object sender, RoutedEventArgs e)
         {
             var p = Plugin;
-            Plugin.Torch.Invoke(delegate { p.ConcealGrids(); });
+            Plugin.Torch.Invoke(delegate { p.ConcealGrids(p.Settings.Data.ConcealDistance); });
         }
 
         private void EditExclusion_OnClick(object sender, RoutedEventArgs e)
