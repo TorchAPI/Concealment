@@ -29,7 +29,6 @@ namespace Concealment.Patches
 
         public static void Patch(PatchContext ctx)
         {
-            //temporarily disabled because BitStream.ResetRead is throwing dumbass exceptions
             ctx.GetPattern(_requestMethod).Prefixes.Add(typeof(PatchReplicableRequest).GetMethod(nameof(PrefixRequest)));
         }
 
@@ -46,9 +45,6 @@ namespace Concealment.Patches
                 var g = ConcealmentPlugin.Instance.ConcealedGroups.FirstOrDefault(gr => gr.Grids.Any(q => q.EntityId == id));
                 if (g != null && add)
                     ConcealmentPlugin.Instance.RevealGroup(g);
-
-                stream.ResetWrite();
-                stream.ResetRead();
             }
             catch (Exception ex)
             {
@@ -57,7 +53,7 @@ namespace Concealment.Patches
             }
             finally
             {
-                //this allows us to fail gracefully
+                //resetting stream in finally clause allows us to fail gracefully
                 packet.BitStream.ResetWrite();
                 packet.BitStream.ResetRead();
             }

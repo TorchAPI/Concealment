@@ -12,17 +12,9 @@ namespace Concealment
 {
     public static class Utilities
     {
-        public static ConditionalWeakTable<MyEntity, IMyReplicable> _replicables = new ConditionalWeakTable<MyEntity, IMyReplicable>();
-
         public static IMyReplicable GetReplicable(MyEntity entity)
         {
-            if (_replicables.TryGetValue(entity, out IMyReplicable rep))
-                return rep;
-
-            rep = MyExternalReplicable.FindByObject(entity);
-            if(rep != null)
-                _replicables.Add(entity, rep);
-            return rep;
+            return MyExternalReplicable.FindByObject(entity);
         }
     }
 }
