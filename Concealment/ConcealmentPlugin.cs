@@ -38,6 +38,8 @@ namespace Concealment
         public Persistent<Settings> Settings { get; private set; }
         public MtObservableList<ConcealGroup> ConcealedGroups { get; } = new MtObservableList<ConcealGroup>();
 
+        public const EntityFlags EXEMPT_FLAG = (EntityFlags)(1 << 31); //top of MyEntityFlags. Hopefully Keen doesn't add another dozen flags
+
         private readonly Dictionary<long, Timer> _keepAliveTimers = new Dictionary<long, Timer>();
         private static readonly Logger Log = LogManager.GetLogger("Concealment");
         private UserControl _control;
@@ -346,6 +348,12 @@ namespace Concealment
             var pirateId = MyPirateAntennas.GetPiratesId();
             foreach (var grid in group.Grids)
             {
+                if ((grid.Flags & EXEMPT_FLAG) == EXEMPT_FLAG)
+                {
+                    Log.Debug($"{group.GridNames} is kept alive by mod flag");
+                    return true;
+                }
+
                 if (_keepAliveTimers.ContainsKey(grid.EntityId))
                 {
                     Log.Debug($"{group.GridNames} is kept alive by PB action");
