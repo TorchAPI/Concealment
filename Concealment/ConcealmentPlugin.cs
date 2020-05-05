@@ -320,7 +320,7 @@ namespace Concealment
                 }
 
                 //Checks if any connected clients have requested any grid in this group for replication
-                if (concealGroup.Grids.Any(g => Replication.IsReplicated(Utilities.GetReplicable(g))))
+                if (concealGroup.Grids.Any(g => Replication.IsReplicatedSafe(Utilities.GetReplicable(g))))
                 {
                     Log.Trace("group in replication");
                     return;
@@ -339,7 +339,7 @@ namespace Concealment
                       return;
                   }
 
-                  if (group.Grids.Any(grid => Replication.IsReplicated(Utilities.GetReplicable(grid))))
+                  if (group.Grids.Any(grid => Replication.IsReplicatedSafe(Utilities.GetReplicable(grid))))
                   {
                       reveal.Add(group);
                       return;
