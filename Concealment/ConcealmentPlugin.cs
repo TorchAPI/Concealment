@@ -167,7 +167,7 @@ namespace Concealment
             ConcealedGroups.SelectMany(x => x.Grids).ForEach(grids.Add);
         }
 
-        private void RevealCryoPod(ulong steamId)
+        private void RevealCryoPod(ulong steamId, string username)
         {
             Torch.Invoke(() =>
             {
