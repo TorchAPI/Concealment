@@ -154,6 +154,7 @@
       <DependentUpon>DynamicConcealmentEditor.xaml</DependentUpon>
     </Compile>
     <Compile Include="DynamicConcealmentManager.cs" />
+    <Compile Include="MeteorShowerTargetPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
   </ItemGroup>
