@@ -22,6 +22,7 @@ using Torch.API.Plugins;
 using Torch.API.Session;
 using Torch.Collections;
 using Torch.Managers;
+using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.Game;
 using VRage.Game.Components;
@@ -74,6 +75,8 @@ namespace Concealment
             Settings.Data.PropertyChanged += Data_PropertyChanged;
             _concealedAabbTree = new MyDynamicAABBTreeD(MyConstants.GAME_PRUNING_STRUCTURE_AABB_EXTENSION);
             torch.Managers.GetManager<ITorchSessionManager>()?.AddFactory(CreateManager);
+            
+            MeteorShowerTargetPatch.Patch(torch.Managers.GetManager<PatchManager>().AcquireContext(), this);
         }
 
         private IManager CreateManager(ITorchSession session)
