@@ -23,8 +23,10 @@ namespace Concealment
         private int _revealInterval = 60;
         private bool _concealProduction;
         private bool _concealPirates;
+        private bool _keepAliveAction;
 
-        private double _dynamicConcealQueryInterval = 15;
+
+		private double _dynamicConcealQueryInterval = 15;
         private double _dynamicConcealScanInterval = 2;
 
         /// <summary>
@@ -252,5 +254,15 @@ namespace Concealment
                 OnPropertyChanged();
             }
         }
-    }
+
+		public bool RCKeepAliveAction
+		{
+			get => _keepAliveAction;
+			set
+			{
+				_keepAliveAction = value;
+				OnPropertyChanged();
+			}
+		}
+	}
 }

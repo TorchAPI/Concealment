@@ -11,6 +11,7 @@ using NLog;
 using Sandbox.Definitions;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
@@ -108,16 +109,19 @@ namespace Concealment
             var delayTimer = new System.Timers.Timer
             {
                 AutoReset = false,
-                Interval = 5000,
+                Interval = 30000,
             };
 
             delayTimer.Elapsed += (sender, args) => _ready = true;
             delayTimer.Start();
-
-            var keepAliveAction = MyAPIGateway.TerminalControls.CreateAction<IMyRemoteControl>("Concealment.KeepAlive");
-            keepAliveAction.Action = KeepAlive;
-            MyAPIGateway.TerminalControls.AddAction<IMyRemoteControl>(keepAliveAction);
-
+            
+            if (Settings.Data.RCKeepAliveAction)
+            {
+                var keepAliveAction = MyAPIGateway.TerminalControls.CreateAction<IMyRemoteControl>("Concealment.KeepAlive");
+                keepAliveAction.Action = KeepAlive;
+                MyAPIGateway.TerminalControls.AddAction<IMyRemoteControl>(keepAliveAction);
+            }
+            
             MyMultiplayer.Static.ClientJoined += RevealCryoPod;
 
             _init = true;
@@ -367,14 +371,21 @@ namespace Concealment
                     if (block == null)
                         continue;
 
-                    if (block is IMyProductionBlock p && !Settings.Data.ConcealProduction && p.IsProducing)
-                    {
-                        Log.Debug($"{group.GridNames} exempted production ({p.CustomName} active)");
-                        exclude = true;
-                        break;
-                    }
+					if (block is MyRefinery r && !Settings.Data.ConcealProduction && !r.InputInventory.Empty())
+					{
+						Log.Debug($"{group.GridNames} exempted refinery ({r.CustomName} active)");
+						exclude = true;
+						break;
+					}
 
-                    if (Settings.Data.ExcludedSubtypes.Contains(block.BlockDefinition.Id.SubtypeName))
+					if (block is MyProductionBlock p && !Settings.Data.ConcealProduction && p.IsProducing)
+					{
+						Log.Debug($"{group.GridNames} exempted assembler ({p.CustomName} active)");
+						exclude = true;
+						break;
+					}
+
+					if (Settings.Data.ExcludedSubtypes.Contains(block.BlockDefinition.Id.SubtypeName))
                     {
                         Log.Debug($"{group.GridNames} exempted subtype {block.BlockDefinition.Id.SubtypeName}");
                         exclude = true;
