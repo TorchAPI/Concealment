@@ -371,7 +371,7 @@ namespace Concealment
                     if (block == null)
                         continue;
 
-					if (block is MyRefinery r && !Settings.Data.ConcealProduction && !r.InputInventory.Empty())
+					if (block is MyRefinery r && !Settings.Data.ConcealProduction && !r.InputInventory.Empty() && r.IsFunctional && r.Enabled)
 					{
 						Log.Debug($"{group.GridNames} exempted refinery ({r.CustomName} active)");
 						exclude = true;
@@ -380,7 +380,7 @@ namespace Concealment
 
 					if (block is MyProductionBlock p && !Settings.Data.ConcealProduction && p.IsProducing)
 					{
-						Log.Debug($"{group.GridNames} exempted assembler ({p.CustomName} active)");
+						Log.Debug($"{group.GridNames} exempted production ({p.CustomName} active)");
 						exclude = true;
 						break;
 					}
