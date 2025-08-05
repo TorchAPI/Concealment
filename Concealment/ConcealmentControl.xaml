@@ -19,6 +19,7 @@
                 <CheckBox Content="Enable Concealment" Margin="3" IsChecked="{Binding Enabled}" />
                 <CheckBox Content="Conceal Production" ToolTip="Conceal grids with active production blocks." Margin="3" IsChecked="{Binding ConcealProduction}" />
                 <CheckBox Content="Conceal Pirates" ToolTip="Conceal grids owned by Space Pirates." Margin="3" IsChecked="{Binding ConcealPirates}" />
+                <CheckBox Content="RC Keep Alive Action" ToolTip="Adds a toolbar action to remote control blocks to allow players to forcefully keep a grid from being concealed using a PB or Timer." Margin="3" IsChecked="{Binding RCKeepAliveAction}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBox Margin="3" Width="150" Text="{Binding ConcealDistance}" />
                     <Label Content="Conceal Distance (meters)" Margin="3" />
