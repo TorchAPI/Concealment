@@ -34,7 +34,6 @@ namespace Concealment
         /// </summary>
         /// 
 
-
         public enum DynamicConcealType
         {
             HostileCharacters = 0,
